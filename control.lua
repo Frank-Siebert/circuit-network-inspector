@@ -327,11 +327,21 @@ local function clear_children(element)
   end
 end
 
+local function entity_rich_text(entity)
+    return string.format(
+        "[entity=%s,unit_number=%d]",
+        entity.name,
+        entity.unit_number
+    )
+end
+
 local function add_entity_button(parent, entity, network, role, selected)
   unit_number_to_entity[entity.unit_number] = entity
   local b = parent.add{
     type = "button",
-    caption = entity.localised_name or entity.name,
+    caption =  entity_rich_text(entity),
+    --caption =  entity_rich_text(entity) .. (entity.localised_name or entity.name),
+    -- entity.localised_name is a table and cannot be concatenated. So caption can either be a string or a LocalisedString
     tags = {
       cni_action = "entity",
       unit_number = entity.unit_number
