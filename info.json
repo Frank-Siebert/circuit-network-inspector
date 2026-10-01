@@ -1,0 +1,8 @@
+{
+  "name": "circuit-network-inspector",
+  "version": "0.1.0",
+  "title": "Circuit Network Inspector",
+  "author": "OpenAI",
+  "factorio_version": "2.1",
+  "description": "Minimal inspector for circuit networks: shows signals and connected readers/writers."
+}
