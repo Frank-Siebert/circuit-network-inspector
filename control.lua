@@ -11,10 +11,10 @@ local function circuit_networks(entity)
   local result = {}
   if not (entity and entity.valid) then return result end
 
-  local connectors = entity:get_wire_connectors(false)
+  local connectors = entity.get_wire_connectors(false)
   for id, connector in pairs(connectors) do
     if connector.valid and connector.network_id and connector.network_id ~= 0 then
-      local network = entity:get_circuit_network(id)
+      local network = entity.get_circuit_network(id)
       if network and network.valid then
         local key = tostring(network.network_id) .. ":" .. tostring(network.wire_type)
         if not result[key] then
@@ -299,7 +299,7 @@ local function collect_network(source, network)
     end
   end
 
-  local connectors = source:get_wire_connectors(false)
+  local connectors = source.get_wire_connectors(false)
   for id, connector in pairs(connectors) do
     if connector.valid and connector.network_id == network.id
         and connector.wire_type == network.wire_type then
@@ -339,12 +339,12 @@ local function refresh(player)
   end
 
   local network = nil
-  local connectors = source:get_wire_connectors(false)
+  local connectors = source.get_wire_connectors(false)
   for id, connector in pairs(connectors) do
     if connector.valid
         and connector.network_id == state.network_id
         and connector.wire_type == state.wire_type then
-      network = source:get_circuit_network(id)
+      network = source.get_circuit_network(id)
       if network then break end
     end
   end
@@ -427,6 +427,8 @@ local function refresh(player)
 end
 
 local function open_inspector(player, source, network)
+player.print("open_inspector Network: " .. network)
+player.print("open_inspector Network: " .. network.id)
   storage.cni = storage.cni or {}
   storage.cni[player.index] = {
     source_unit_number = source.unit_number,
@@ -454,25 +456,110 @@ local function open_inspector(player, source, network)
   refresh(player)
 end
 
+
+local entity_type_to_gui_type = {
+    -- Produktions- & Verarbeitungsmaschinen
+    ["assembling-machine"]       = defines.relative_gui_type.assembling_machine_gui,
+    ["furnace"]                  = defines.relative_gui_type.furnace_gui,
+    ["rocket-silo"]              = defines.relative_gui_type.rocket_silo_gui,
+    ["mining-drill"]             = defines.relative_gui_type.mining_drill_gui,
+    ["lab"]                      = defines.relative_gui_type.lab_gui,
+    ["beacon"]                   = defines.relative_gui_type.beacon_gui,
+
+    -- Lagerung, Logistik & Inventare
+    ["container"]                = defines.relative_gui_type.item_with_inventory_gui,
+    ["logistic-container"]       = defines.relative_gui_type.item_with_inventory_gui,
+    ["car"]                      = defines.relative_gui_type.item_with_inventory_gui,
+    ["cargo-wagon"]              = defines.relative_gui_type.item_with_inventory_gui,
+    ["fluid-wagon"]              = defines.relative_gui_type.item_with_inventory_gui,
+    ["artillery-wagon"]          = defines.relative_gui_type.item_with_inventory_gui,
+    ["spidertron-remote"]        = defines.relative_gui_type.item_with_inventory_gui, -- Falls als Entity geöffnet
+    ["spider-vehicle"]           = defines.relative_gui_type.item_with_inventory_gui,
+
+    -- Strom & Energie
+    ["accumulator"]              = defines.relative_gui_type.accumulator_gui,
+    ["generator"]                = defines.relative_gui_type.generator_gui,
+    ["solar-panel"]              = defines.relative_gui_type.solar_panel_gui,
+    ["reactor"]                  = defines.relative_gui_type.reactor_gui,
+    ["electric-energy-interface"] = defines.relative_gui_type.electric_energy_interface_gui,
+    ["electric-pole"]            = defines.relative_gui_type.electric_energy_interface_gui,
+
+    -- Schaltung & Logik (Combinators)
+    ["constant-combinator"]      = defines.relative_gui_type.constant_combinator_gui,
+    ["arithmetic-combinator"]    = defines.relative_gui_type.arithmetic_combinator_gui,
+    ["decider-combinator"]       = defines.relative_gui_type.decider_combinator_gui,
+    ["selector-combinator"]       = defines.relative_gui_type.selector_combinator_gui,
+    ["programmable-speaker"]     = defines.relative_gui_type.programmable_speaker_gui,
+    ["power-switch"]             = defines.relative_gui_type.power_switch_gui,
+
+    -- Verteidigung & Kampf
+    ["ammo-turret"]              = defines.relative_gui_type.turret_gui,
+    ["electric-turret"]          = defines.relative_gui_type.turret_gui,
+    ["fluid-turret"]             = defines.relative_gui_type.turret_gui,
+    ["artillery-turret"]         = defines.relative_gui_type.artillery_turret_gui,
+
+    -- Zuginfrastruktur
+    ["train-stop"]               = defines.relative_gui_type.train_stop_gui,
+    ["locomotive"]               = defines.relative_gui_type.locomotive_gui,
+    ["rail-signal"]              = defines.relative_gui_type.rail_signal_gui,
+    ["rail-chain-signal"]        = defines.relative_gui_type.rail_chain_signal_gui,
+
+    -- Flüssigkeiten & Rohre
+    ["storage-tank"]             = defines.relative_gui_type.storage_tank_gui,
+    ["pump"]                     = defines.relative_gui_type.pump_gui,
+
+    -- Sonstiges & Spezielle GUIs
+    ["roboport"]                 = defines.relative_gui_type.roboport_gui,
+    ["splitter"]                 = defines.relative_gui_type.splitter_gui,
+    ["transport-belt"]           = defines.relative_gui_type.transport_belt_gui,
+    ["underground-belt"]         = defines.relative_gui_type.transport_belt_gui,
+    ["loader"]                   = defines.relative_gui_type.loader_gui,
+    ["loader-1x1"]               = defines.relative_gui_type.loader_gui,
+    ["market"]                   = defines.relative_gui_type.market_gui,
+    ["infinity-container"]       = defines.relative_gui_type.infinity_container_gui,
+    ["infinity-pipe"]            = defines.relative_gui_type.infinity_pipe_gui,
+    ["heat-interface"]           = defines.relative_gui_type.heat_interface_gui
+}
+
 -- Add a small button next to Factorio's additional-entity-info GUI.
 local function add_relative_button(player, entity)
+  player.print("adding 1")
   destroy_relative(player)
   if not entity or not entity.valid then return end
   if not first_network(entity) then return end
-
+  --player.print("gui type = " .. tostring(entity)) -- daher kommt der Kreis. So als würde man pingen!
+  player.print("entity = " .. entity.type .. " / " .. entity.name)
+  --player.print("entity " .. serpent.block(entity))
   player.gui.relative.add{
-    type = "button",
+    type = "frame",
     name = BUTTON,
-    caption = "ⓘ",
+    caption = "ⓘ HERE I AM foo",
     tooltip = "Inspect circuit network",
-    anchor = {
-      gui = defines.relative_gui_type.additional_entity_info_gui,
-      position = defines.relative_gui_position.right,
-      type = entity.type,
-      name = entity.name
-    },
-    tags = {cni_action="open_from_entity", unit_number=entity.unit_number}
+	direction = "vertical",
+	anchor = {
+		gui = entity_type_to_gui_type[entity.type],
+		position = defines.relative_gui_position.right
+	},
+	style = "frame"
   }
+  player.gui.relative[BUTTON].add{
+    type = "button",
+    name = BUTTON .. "inFrame",
+    caption = "inspect networks",
+    tooltip = "Inspect circuit network",
+    tags = {
+        cni_action = "open_from_entity",
+        unit_number = entity.unit_number
+    }
+  }
+  local children = player.gui.relative.children
+  player.print("relative children: " .. #children)
+
+  for key, child in pairs(children) do
+  	player.print("  " .. child.name .. " / " .. child.type .. " ;key=" .. key)
+	--player.print("  full child!" .. child) -- crashes
+	player.print("  full child?" .. serpent.block(child))
+  end  
 end
 
 script.on_event(defines.events.on_gui_opened, function(event)
@@ -506,9 +593,12 @@ script.on_event(defines.events.on_gui_click, function(event)
   if not action then return end
 
   if action == "open_from_entity" then
+    player.print("open_from_entity" .. element.tags.unit_number)
     local entity = game.get_entity_by_unit_number(element.tags.unit_number)
+	if not entity then player.print("NOT entity") end
     if not entity then return end
     local network = first_network(entity)
+    player.print("open_from_entity 2" .. tostring(entity) .. " network: " .. tostring(network))
     if network then
       open_inspector(player, entity, network)
     else
