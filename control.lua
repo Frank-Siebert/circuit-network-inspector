@@ -1,6 +1,7 @@
 local MOD = "circuit-network-inspector"
 local GUI = "cni_frame"
 local BUTTON = "cni_button"
+local unit_number_to_entity = {}
 
 local function destroy_relative(player)
   local e = player.gui.relative[BUTTON]
@@ -29,12 +30,6 @@ local function circuit_networks(entity)
   end
 
   return result
-end
-
-local function first_network(entity)
-  local networks = circuit_networks(entity)
-  for _, n in pairs(networks) do return n end
-  return nil
 end
 
 local function signal_key(signal)
@@ -81,6 +76,22 @@ local function network_selected(selection, wire_type)
     return selection.green ~= false
   end
   return true
+end
+
+--- Finds a LuaCircuitNetwork by ID when the surface is unknown
+-- @param network_id number
+-- @return LuaCircuitNetwork|nil
+local function find_circuit_network_anywhere(network_id)
+    for _, surface in pairs(game.surfaces) do
+        local manager = surface.circuit_network_manager
+        if manager then
+            local network = manager.get_network(network_id)
+            if network and network.valid then
+                return network
+            end
+        end
+    end
+    return nil
 end
 
 -- Returns the signals explicitly accessed by a behavior.
@@ -316,7 +327,7 @@ local function clear_children(element)
   end
 end
 
-local function add_entity_button(parent, entity, role, selected)
+local function add_entity_button(parent, entity, network, role, selected)
   local b = parent.add{
     type = "button",
     caption = entity.localised_name or entity.name,
@@ -332,7 +343,7 @@ local function refresh(player)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
 
-  local source = game.get_entity_by_unit_number(state.source_unit_number)
+  local source = unit_number_to_entity[ state.source_unit_number]
   if not source or not source.valid then
     if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
     return
@@ -427,12 +438,11 @@ local function refresh(player)
 end
 
 local function open_inspector(player, source, network)
-player.print("open_inspector Network: " .. network)
-player.print("open_inspector Network: " .. network.id)
+  player.print("open_inspector Network: " .. network.id)
   storage.cni = storage.cni or {}
   storage.cni[player.index] = {
     source_unit_number = source.unit_number,
-    network_id = network.id,
+    network_id = network.network_id,
     wire_type = network.wire_type,
     signal = nil
   }
@@ -521,12 +531,24 @@ local entity_type_to_gui_type = {
     ["heat-interface"]           = defines.relative_gui_type.heat_interface_gui
 }
 
+local function empty(x)
+  for _, _ in pairs(x) do return false end
+  return true
+end
+
 -- Add a small button next to Factorio's additional-entity-info GUI.
 local function add_relative_button(player, entity)
   player.print("adding 1")
   destroy_relative(player)
   if not entity or not entity.valid then return end
-  if not first_network(entity) then return end
+  for key, child in pairs(circuit_networks(entity)) do
+  	--player.print("  " .. child.network_id .. " / " ..  " ;key=" .. key)
+	--player.print("  full child!" .. child) -- crashes
+	player.print("  full child?" .. serpent.block(child))
+  end  
+
+  local networks = circuit_networks(entity)
+  if empty(networks) then return end
   --player.print("gui type = " .. tostring(entity)) -- daher kommt der Kreis. So als würde man pingen!
   player.print("entity = " .. entity.type .. " / " .. entity.name)
   --player.print("entity " .. serpent.block(entity))
@@ -542,16 +564,21 @@ local function add_relative_button(player, entity)
 	},
 	style = "frame"
   }
-  player.gui.relative[BUTTON].add{
-    type = "button",
-    name = BUTTON .. "inFrame",
-    caption = "inspect networks",
-    tooltip = "Inspect circuit network",
-    tags = {
-        cni_action = "open_from_entity",
-        unit_number = entity.unit_number
+  for _, network in pairs(networks) do
+    unit_number_to_entity[entity.unit_number] = entity
+    player.gui.relative[BUTTON].add{
+      type = "button",
+      name = BUTTON .. "inFrame" .. network.id,
+      caption = "inspect network " .. network.id,
+      tooltip = "Inspect circuit network",
+      tags = {
+          cni_action = "open_from_entity",
+          unit_number = entity.unit_number,
+          network = network
+      }
     }
-  }
+    game.print("entity has get_entity_by_unit_number " .. tostring(entity.prototype.has_flag("get-by-unit-number"))) -- prints false, so no findings (later) do not surprise
+  end
   local children = player.gui.relative.children
   player.print("relative children: " .. #children)
 
@@ -593,11 +620,12 @@ script.on_event(defines.events.on_gui_click, function(event)
   if not action then return end
 
   if action == "open_from_entity" then
-    player.print("open_from_entity" .. element.tags.unit_number)
-    local entity = game.get_entity_by_unit_number(element.tags.unit_number)
+    player.print("open_from_entity, (unit_number=" .. element.tags.unit_number .. ", network id=" .. element.tags.network.id)
+    local network = element.tags.network
+    --local entity = game.get_entity_by_unit_number(element.tags.unit_number)
+    local entity = unit_number_to_entity[element.tags.unit_number]
 	if not entity then player.print("NOT entity") end
     if not entity then return end
-    local network = first_network(entity)
     player.print("open_from_entity 2" .. tostring(entity) .. " network: " .. tostring(network))
     if network then
       open_inspector(player, entity, network)
