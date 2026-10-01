@@ -117,11 +117,11 @@ local function behavior_signals(entity, behavior, wire_type)
     if signal then add_signal(writes, signal) end
   end
 
-  -- Generic on/off behavior.
+  --[[ Generic on/off behavior.
   if input_ok and behavior.circuit_enable_disable and behavior.circuit_condition then
     add_read(behavior.circuit_condition.first_signal)
     add_read(behavior.circuit_condition.second_signal)
-  end
+  end]]
 
   local t = behavior.type
 
@@ -348,8 +348,8 @@ local function refresh(player)
     if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
     return
   end
-
-  local network = nil
+  player.print("network_id: " .. state.network_id)
+  local network -- source.get_circuit_network(state.network_id)
   local connectors = source.get_wire_connectors(false)
   for id, connector in pairs(connectors) do
     if connector.valid
