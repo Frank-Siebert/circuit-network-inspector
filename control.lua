@@ -17,7 +17,7 @@ local function circuit_networks(entity)
     if connector.valid and connector.network_id and connector.network_id ~= 0 then
       local network = entity.get_circuit_network(id)
       if network and network.valid then
-        local key = tostring(network.network_id) .. ":" .. tostring(network.wire_type)
+        local key = tostring(network.network_id) --.. ":" .. tostring(network.wire_type)
         if not result[key] then
           result[key] = {
             id = network.network_id,
@@ -250,7 +250,7 @@ local function entity_roles(entity, network)
       and network_selected(behavior.output_networks, network.wire_type)
 
   local reads, writes = behavior_signals(entity, behavior, network.wire_type)
-
+--[[
   if input_ok then
     for _, _ in pairs(reads) do
       readers = reads
@@ -270,12 +270,12 @@ local function entity_roles(entity, network)
     end
 
     -- Some behaviors output dynamic signals (inventory, fuel, etc.).
-    if behavior.read_contents or behavior.circuit_read_hand_contents
-        or behavior.read_fuel or behavior.read_temperature or behavior.read_signal then
+    if behavior.circuit_read_contents or behavior.circuit_read_hand_contents
+        or behavior.circuit_read_fuel or behavior.circuit_read_temperature or behavior.circuit_read_signal then
       writers.__generic = true
     end
   end
-
+]]
   return readers, writers
 end
 
@@ -292,7 +292,7 @@ local function collect_network(source, network)
     if not connector or not connector.valid then return end
 
     local owner = connector.owner
-    if owner and owner.valid and not owner.is_ghost then
+    if owner and owner.valid and not connector.is_ghost then
       local id = owner.unit_number
       if id and not entities[id] then entities[id] = owner end
     end
@@ -382,9 +382,9 @@ local function refresh(player)
   all.style.horizontally_stretchable = true
 
   local signals = network.signals or {}
-  table.sort(signals, function(a,b)
-    return signal_key(a.signal) < signal_key(b.signal)
-  end)
+  --table.sort(signals, function(a,b)
+  --  return signal_key(a.signal) < signal_key(b.signal)
+  --end)
 
   for _, s in pairs(signals) do
     local button = left.add{
@@ -442,7 +442,7 @@ local function open_inspector(player, source, network)
   storage.cni = storage.cni or {}
   storage.cni[player.index] = {
     source_unit_number = source.unit_number,
-    network_id = network.network_id,
+    network_id = network.id,
     wire_type = network.wire_type,
     signal = nil
   }
@@ -475,6 +475,9 @@ local entity_type_to_gui_type = {
     ["mining-drill"]             = defines.relative_gui_type.mining_drill_gui,
     ["lab"]                      = defines.relative_gui_type.lab_gui,
     ["beacon"]                   = defines.relative_gui_type.beacon_gui,
+
+    ["inserter"]                 = defines.relative_gui_type.inserter_gui,
+    ["fast-inserter"]            = defines.relative_gui_type.inserter_gui,
 
     -- Lagerung, Logistik & Inventare
     ["container"]                = defines.relative_gui_type.item_with_inventory_gui,
