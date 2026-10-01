@@ -620,8 +620,8 @@ local function add_relative_button(player, entity)
   player.gui.relative.add{
     type = "frame",
     name = BUTTON,
-    caption = "ⓘ HERE I AM foo",
-    tooltip = "Inspect circuit network",
+    caption = "inpect circuit network",
+    tooltip = "Inspect circuit network", -- TODO tooltip should be more than repitition of caption.
 	direction = "vertical",
 	anchor = {
 		gui = entity_type_to_gui_type[entity.type],
