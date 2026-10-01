@@ -371,8 +371,21 @@ local function refresh(player)
 
   local left = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
   left.style.width = 260
-  local right = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
-  right.style.width = 520
+
+  local right_scroll_pane = body.add{
+    type = "scroll-pane",
+    name = "right-scroll-pane",
+    direction = "vertical"
+  }
+
+  right_scroll_pane.style.vertically_stretchable = true
+  right_scroll_pane.style.horizontally_stretchable = true
+
+  local right = right_scroll_pane.add{
+    type = "flow",
+    name = "right_content",
+    direction = "vertical"
+  }
 
   local all = left.add{
     type="button",
