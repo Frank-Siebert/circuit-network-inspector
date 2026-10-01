@@ -348,7 +348,6 @@ local function refresh(player)
     if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
     return
   end
-  player.print("network_id: " .. state.network_id)
   local network -- source.get_circuit_network(state.network_id)
   local connectors = source.get_wire_connectors(false)
   for id, connector in pairs(connectors) do
@@ -367,7 +366,6 @@ local function refresh(player)
   local frame = player.gui.screen[GUI]
   if not frame then player.print("no frame");return end
 
-  frame.caption = "Circuit Network " .. network.network.network_id
   local body = frame.body
   clear_children(body)
 
@@ -454,8 +452,46 @@ local function open_inspector(player, source, network)
   local frame = player.gui.screen.add{
     type="frame",
     name=GUI,
-    direction="vertical",
-    caption="Circuit Network " .. network.id
+    direction="vertical"
+  }
+
+  local titlebar = frame.add{
+    type = "flow",
+    direction = "horizontal"
+  }
+
+  titlebar.add{
+    type = "label",
+    caption = "Circuit Network Inspector " .. network.id,
+    style = "frame_title"
+  }
+
+  titlebar.drag_target = frame
+
+  titlebar.add{
+    type = "label",
+    caption = "Circuit Network Inspector",
+    style = "frame_title",
+    ignored_by_interaction = true
+  }
+
+  local filler = titlebar.add{
+    type = "empty-widget",
+    style = "draggable_space_header",
+    ignored_by_interaction = true
+  }
+
+  filler.style.horizontally_stretchable = true
+  filler.style.height = 24
+
+  titlebar.add{
+    type = "sprite-button",
+    name = "cni_close",
+    style = "frame_action_button",
+    sprite = "utility/close",
+    --hovered_sprite = "utility/close_black",
+    --clicked_sprite = "utility/close_black",
+    tooltip = {"gui.close-instruction"}
   }
   frame.auto_center = true
   frame.style.width = 800
@@ -623,6 +659,10 @@ script.on_event(defines.events.on_gui_click, function(event)
 
   local action = element.tags and element.tags.cni_action
   if not action then return end
+
+  if event.element.name == "cni_close" then
+    player.gui.screen[GUI].destroy()
+  end
 
   if action == "open_from_entity" then
     player.print("open_from_entity, (unit_number=" .. element.tags.unit_number .. ", network id=" .. element.tags.network.id)
