@@ -328,6 +328,7 @@ local function clear_children(element)
 end
 
 local function add_entity_button(parent, entity, network, role, selected)
+  unit_number_to_entity[entity.unit_number] = entity
   local b = parent.add{
     type = "button",
     caption = entity.localised_name or entity.name,
@@ -710,7 +711,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     end
 
   elseif action == "entity" then
-    local entity = game.get_entity_by_unit_number(element.tags.unit_number)
+    local entity = unit_number_to_entity[element.tags.unit_number]
     if not entity or not entity.valid then return end
 
     player.selected = entity
