@@ -359,13 +359,15 @@ local function refresh(player)
       if network then break end
     end
   end
+  local foo = circuit_networks(source)
+  network = foo[tostring(state.network_id)]
 
-  if not network then return end
+  if not network then player.print("no network");return end
 
   local frame = player.gui.screen[GUI]
-  if not frame then return end
+  if not frame then player.print("no frame");return end
 
-  frame.caption = "Circuit Network " .. network.network_id
+  frame.caption = "Circuit Network " .. network.network.network_id
   local body = frame.body
   clear_children(body)
 
