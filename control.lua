@@ -657,12 +657,13 @@ script.on_event(defines.events.on_gui_click, function(event)
   local element = event.element
   if not (player and element and element.valid) then return end
 
-  local action = element.tags and element.tags.cni_action
-  if not action then return end
-
   if event.element.name == "cni_close" then
     player.gui.screen[GUI].destroy()
+    return
   end
+
+  local action = element.tags and element.tags.cni_action
+  if not action then return end
 
   if action == "open_from_entity" then
     player.print("open_from_entity, (unit_number=" .. element.tags.unit_number .. ", network id=" .. element.tags.network.id)
