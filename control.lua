@@ -405,6 +405,13 @@ local function refresh(player)
   }
   all.style.horizontally_stretchable = true
 
+  local signal_button = left.add{
+    type = "choose-elem-button",
+    name = "cni_signal",
+    elem_type = "signal",
+    signal_type = "virtual"
+}
+
   local signals = network.signals or {}
   --table.sort(signals, function(a,b)
   --  return signal_key(a.signal) < signal_key(b.signal)
