@@ -736,7 +736,7 @@ end)
 
 script.on_event(defines.events.on_tick, function(event)
   -- Keep the signal values reasonably live without rebuilding every tick.
-  if event.tick % 15 ~= 0 or not storage.cni then return end
+  if event.tick % 600 ~= 0 or not storage.cni then return end
   for player_index, state in pairs(storage.cni) do
     local player = game.get_player(player_index)
     if player and player.gui.screen[GUI] and player.gui.screen[GUI].valid then
