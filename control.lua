@@ -96,6 +96,21 @@ local function find_circuit_network_anywhere(network_id)
     return nil
 end
 
+local function signal_to_rich_text(signalID)
+    if not signalID then
+        return ""
+    end
+    local type = signalID.type
+    if not type then type = "item"
+    elseif type == "virtual" then type = "virtual-signal" end
+
+    return string.format(
+        "[%s=%s]",
+        type,
+        signalID.name
+    )
+end
+
 -- Returns the signals explicitly accessed by a behavior.
 -- This is intentionally small: the first version covers the common
 -- generic conditions, combinators, containers, accumulators, inserters,
@@ -251,11 +266,13 @@ local function behavior_signals(entity, behavior, wire_type)
     if input_ok then
       if behavior.circuit_set_recipe then
          reads.__dynamic = true
+         game.print("set recipe")
       end
     end
     if output_ok then
       add_write(behavior.circuit_read_ingredients and "__dynamic") -- TODO fishy
       add_write(behavior.circuit_read_recipe_finished and behavior.circuit_recipe_finished_signal)
+      if behavior.circuit_read_recipe_finished then game.print(signal_to_rich_text(behavior.circuit_recipe_finished_signal)) end
     end
     -- TODO assembling_machine might be incomplete
   end
