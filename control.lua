@@ -630,6 +630,16 @@ local function empty(x)
   return true
 end
 
+local function focus_entity(player, entity)
+    if not entity or not entity.valid then
+        return
+    end
+
+    player.centered_on = entity
+    player.zoom = player.zoom_limits.closest.zoom
+    player.print(tostring(entity))
+end
+
 -- Add a small button next to Factorio's additional-entity-info GUI.
 local function add_relative_button(player, entity)
   player.print("adding 1")
@@ -673,6 +683,16 @@ local function add_relative_button(player, entity)
     }
     game.print("entity has get_entity_by_unit_number " .. tostring(entity.prototype.has_flag("get-by-unit-number"))) -- prints false, so no findings (later) do not surprise
   end
+  player.gui.relative[BUTTON].add{
+    type = "button",
+    name = BUTTON .. "focus",
+    caption = "focus entity",
+    tooltip = "this is useful if you opened from the network inspector and don't know where the entity is",
+    tags = {
+      cni_action = "focus_entity",
+      unit_number = entity.unit_number
+    }
+  }
   local children = player.gui.relative.children
   player.print("relative children: " .. #children)
 
@@ -760,6 +780,9 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
     if storage.cni then storage.cni[player.index] = nil end
+  elseif action == "focus_entity" then
+    local entity = unit_number_to_entity[element.tags.unit_number]
+    focus_entity(player,entity)
   end
 end)
 
