@@ -23,7 +23,6 @@ entity. If an entity is connected to several independent red/green networks,
 a later version should expose network selection explicitly.
 
 ## TODOs:
-* the gui attached to entity is terrible. red, green; the input and output ports of combinators
 * rewrite section above, chatGPT output is obsolete
 * handle combitors with their 2 connection points better
 * some entities might be missing, e.g. labs

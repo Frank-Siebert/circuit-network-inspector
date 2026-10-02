@@ -571,7 +571,23 @@ local function focus_entity(player, entity)
 
     player.centered_on = entity
     player.zoom = player.zoom_limits.closest.zoom
-    player.print(tostring(entity))
+    player.print(entity.gps_tag)
+end
+
+local function network_to_text(network)
+  if network.network.wire_connector_id == defines.wire_connector_id.circuit_red then
+     return "[item=red-wire] " .. network.id
+  elseif network.network.wire_connector_id == defines.wire_connector_id.circuit_green then
+     return "[item=green-wire] " .. network.id
+  elseif network.network.wire_connector_id == defines.wire_connector_id.combinator_input_red then
+     return "[item=red-wire] input " .. network.id
+  elseif network.network.wire_connector_id == defines.wire_connector_id.combinator_input_green then
+     return "[item=green-wire] input " .. network.id
+  elseif network.network.wire_connector_id == defines.wire_connector_id.combinator_output_red then
+     return "[item=red-wire] out " .. network.id
+  elseif network.network.wire_connector_id == defines.wire_connector_id.combinator_output_green then
+     return "[item=green-wire] out " .. network.id
+  end
 end
 
 -- Add a small button next to Factorio's additional-entity-info GUI.
@@ -593,8 +609,7 @@ local function add_relative_button(player, entity)
   player.gui.relative.add{
     type = "frame",
     name = BUTTON,
-    caption = "inpect circuit network",
-    tooltip = "Inspect circuit network", -- TODO tooltip should be more than repitition of caption.
+    caption = "Inspect circuit networks",
 	direction = "vertical",
 	anchor = {
 		gui = Entity_type_to_gui_type[entity.type],
@@ -607,7 +622,7 @@ local function add_relative_button(player, entity)
     player.gui.relative[BUTTON].add{
       type = "button",
       name = BUTTON .. "inFrame" .. network.id,
-      caption = "inspect network " .. network.network.wire_connector_id .. network.id,
+      caption = "ⓘ " .. network_to_text(network),
       tooltip = "Inspect circuit network",
       tags = {
           cni_action = "open_from_entity",
@@ -617,6 +632,7 @@ local function add_relative_button(player, entity)
     }
     game.print("entity has get_entity_by_unit_number " .. tostring(entity.prototype.has_flag("get-by-unit-number"))) -- prints false, so no findings (later) do not surprise
   end
+  player.gui.relative[BUTTON].add{type="line"}
   player.gui.relative[BUTTON].add{
     type = "button",
     name = BUTTON .. "focus",
