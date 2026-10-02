@@ -125,7 +125,7 @@ local function behavior_signals(entity, behavior, wire_type)
 
   local t = behavior.type
 
-  if t == "arithmetic-combinator" then
+  if t == defines.control_behavior.type.arithmetic_combinator then
     local p = behavior.parameters
     if p then
       add_read(p.first_signal, p.first_signal_networks)
@@ -133,7 +133,7 @@ local function behavior_signals(entity, behavior, wire_type)
       if output_ok then add_write(p.output_signal) end
     end
 
-  elseif t == "decider-combinator" then
+  elseif t == defines.control_behavior.type.decider_combinator then
     local p = behavior.parameters
     if p then
       if input_ok then
@@ -148,7 +148,7 @@ local function behavior_signals(entity, behavior, wire_type)
       end
     end
 
-  elseif t == "selector-combinator" then
+  elseif t == defines.control_behavior.type.selector_combinator then
     local p = behavior.parameters
     if p and input_ok then
       add_read(p.index_signal)
@@ -166,9 +166,9 @@ local function behavior_signals(entity, behavior, wire_type)
       add_write(p.day_length_signal)
     end
 
-  elseif t == "container"
-      or t == "logistic-container"
-      or t == "proxy-container" then
+  elseif t == defines.control_behavior.type.container
+      or t == defines.control_behavior.type.logistic_container
+      or t == defines.control_behavior.type.proxy_container then
     if output_ok and behavior.read_contents then
       -- Dynamic contents: actual signals are determined from the inventory.
       local inventory = entity.get_inventory(defines.inventory.chest)
@@ -179,10 +179,10 @@ local function behavior_signals(entity, behavior, wire_type)
       end
     end
 
-  elseif t == "accumulator" then
+  elseif t == defines.control_behavior.type.accumulator then
     if output_ok and behavior.read_charge then add_write(behavior.output_signal) end
 
-  elseif t == "inserter" then
+  elseif t == defines.control_behavior.type.arithmetic_combinator then
     if input_ok and behavior.circuit_set_stack_size then
       add_read(behavior.circuit_stack_control_signal)
     end
@@ -195,8 +195,8 @@ local function behavior_signals(entity, behavior, wire_type)
       end
     end
 
-  elseif t == "rail-signal"
-      or t == "rail-chain-signal" then
+  elseif t == defines.control_behavior.type.rail_signal
+      or t == defines.control_behavior.type.rail_chain_signal then
     if input_ok and behavior.close_signal and behavior.circuit_condition then
       add_read(behavior.circuit_condition.first_signal)
       add_read(behavior.circuit_condition.second_signal)
@@ -208,13 +208,13 @@ local function behavior_signals(entity, behavior, wire_type)
       add_write(behavior.blue_signal)
     end
 
-  elseif t == "reactor" then
+  elseif t == defines.control_behavior.type.reactor then
     if output_ok then
       if behavior.read_temperature then add_write(behavior.temperature_signal) end
       -- Fuel signal is dynamic; leave it represented by the generic writer entry.
     end
 
-  elseif t == "train-stop" then
+  elseif t == defines.control_behavior.type.train_stop then
     if input_ok and behavior.circuit_enable_disable and behavior.circuit_condition then
       add_read(behavior.circuit_condition.first_signal)
       add_read(behavior.circuit_condition.second_signal)
@@ -227,7 +227,7 @@ local function behavior_signals(entity, behavior, wire_type)
       add_write(behavior.trains_count_signal)
     end
 
-  elseif t == "wall" then
+  elseif t == defines.control_behavior.type.wall then
     if input_ok then
       add_read(behavior.circuit_condition and behavior.circuit_condition.first_signal)
       add_read(behavior.circuit_condition and behavior.circuit_condition.second_signal)
