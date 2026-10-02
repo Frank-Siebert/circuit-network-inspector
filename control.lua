@@ -117,11 +117,14 @@ local function behavior_signals(entity, behavior, wire_type)
     if signal then add_signal(writes, signal) end
   end
 
-  --[[ Generic on/off behavior.
-  if input_ok and behavior.circuit_enable_disable and behavior.circuit_condition then
+  -- Generic on/off behavior.
+
+  local has_circuit_enable_disable, value = pcall(function() return behavior["circuit_enable_disable"] end)
+  if has_circuit_enable_disable and
+     input_ok and behavior.circuit_enable_disable and behavior.circuit_condition then
     add_read(behavior.circuit_condition.first_signal)
     add_read(behavior.circuit_condition.second_signal)
-  end]]
+  end
 
   local t = behavior.type
 
