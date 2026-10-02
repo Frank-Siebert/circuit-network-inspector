@@ -248,17 +248,18 @@ local function entity_roles(entity, network)
   local output_ok = network_selected(behavior.output_networks, network.wire_type)
 
   local reads, writes = behavior_signals(entity, behavior, network.wire_type)
---[[
+
   if input_ok then
     for _, _ in pairs(reads) do
       readers = reads
       break
     end
+    --[[
     -- A generic condition reader should count even if there is no signal
     -- reference we could extract.
     if behavior.circuit_enable_disable and behavior.circuit_condition then
       readers.__generic = true
-    end
+    end]]
   end
 
   if output_ok then
@@ -266,14 +267,14 @@ local function entity_roles(entity, network)
       writers = writes
       break
     end
-
+    --[[
     -- Some behaviors output dynamic signals (inventory, fuel, etc.).
     if behavior.circuit_read_contents or behavior.circuit_read_hand_contents
         or behavior.circuit_read_fuel or behavior.circuit_read_temperature or behavior.circuit_read_signal then
       writers.__generic = true
-    end
+    end]]
   end
-]]
+
   return readers, writers
 end
 
