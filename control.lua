@@ -436,8 +436,8 @@ local function refresh(player)
 
   for _, entity in pairs(entities) do
     local r, w = entity_roles(entity, network)
-    local reader_match = selected == nil or r[signal_key(selected)] or r.__generic
-    local writer_match = selected == nil or w[signal_key(selected)] or w.__generic
+    local reader_match = next(r) and (selected == nil or r[signal_key(selected)] or r.__generic)
+    local writer_match = next(w) and (selected == nil or w[signal_key(selected)] or w.__generic)
 
     if reader_match then table.insert(readers, entity) end
     if writer_match then table.insert(writers, entity) end
