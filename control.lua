@@ -177,12 +177,13 @@ local function behavior_signals(entity, behavior, wire_type)
           add_write({type="item", name=item.name})
         end
       end
+      writes.__dynamic = true
     end
 
   elseif t == defines.control_behavior.type.accumulator then
     if output_ok and behavior.read_charge then add_write(behavior.output_signal) end
 
-  elseif t == defines.control_behavior.type.arithmetic_combinator then
+  elseif t == defines.control_behavior.type.inserter then
     if input_ok and behavior.circuit_set_stack_size then
       add_read(behavior.circuit_stack_control_signal)
     end
@@ -193,6 +194,7 @@ local function behavior_signals(entity, behavior, wire_type)
       if hand and hand.valid_for_read then
         add_write({type="item", name=hand.name})
       end
+      writes.__dynamic = true
     end
 
   elseif t == defines.control_behavior.type.rail_signal
