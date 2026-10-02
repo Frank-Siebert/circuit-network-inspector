@@ -244,10 +244,8 @@ local function entity_roles(entity, network)
 
   if not behavior then return readers, writers end
 
-  local input_ok = behavior.input_networks ~= nil
-      and network_selected(behavior.input_networks, network.wire_type)
-  local output_ok = behavior.output_networks ~= nil
-      and network_selected(behavior.output_networks, network.wire_type)
+  local input_ok = network_selected(behavior.input_networks, network.wire_type)
+  local output_ok = network_selected(behavior.output_networks, network.wire_type)
 
   local reads, writes = behavior_signals(entity, behavior, network.wire_type)
 --[[
