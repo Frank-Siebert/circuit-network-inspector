@@ -21,3 +21,17 @@ conservatively.
 The mod currently inspects the first circuit network found on the source
 entity. If an entity is connected to several independent red/green networks,
 a later version should expose network selection explicitly.
+
+## TODOs:
+* better structure, split up into files
+* the gui attached to entity is terrible. red, green; the input and output ports of combinators
+* to gui attached to entity: center action.
+* rewrite section above, chatGPT output is obsolete
+* handle combitors with their 2 connection points better
+* some entities might be missing, e.g. labs
+* output the usage of the signals
+* filter by signal
+
+### conceptual
+* clearer distinction between current signals, potential outputs (decider) and dynamic outputs
+* the entity list should contain the actual accesses, like "enable if [V] < 150"
