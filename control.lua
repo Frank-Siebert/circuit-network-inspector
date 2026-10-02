@@ -182,6 +182,12 @@ local function behavior_signals(entity, behavior, wire_type)
       end
       writes.__dynamic = true
     end
+    if t == defines.control_behavior.type.logistic_container then
+      if input_ok then
+        add_read("__dynamic")
+      end
+      -- TODO possibly incomplete
+    end
 
   elseif t == defines.control_behavior.type.accumulator then
     if output_ok and behavior.read_charge then add_write(behavior.output_signal) end
@@ -238,6 +244,18 @@ local function behavior_signals(entity, behavior, wire_type)
       add_read(behavior.circuit_condition and behavior.circuit_condition.second_signal)
     end
     if output_ok and behavior.read_sensor then add_write(behavior.output_signal) end
+
+  elseif t == defines.control_behavior.type.assembling_machine then
+    if input_ok then
+      if behavior.circuit_set_recipe then
+         reads.__dynamic = true
+      end
+    end
+    if output_ok then
+      add_write(behavior.circuit_read_ingredients and "__dynamic") -- TODO fishy
+      add_write(behavior.circuit_read_recipe_finished and behavior.circuit_recipe_finished_signal)
+    end
+    -- TODO assembling_machine might be incomplete
   end
 
   return reads, writes
