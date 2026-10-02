@@ -24,7 +24,7 @@ a later version should expose network selection explicitly.
 
 ## TODOs:
 * rewrite section above, chatGPT output is obsolete
-* handle combitors with their 2 connection points better
+* handle combinators with their 2 connection points better
 * some entities might be missing, e.g. labs
 * output the usage of the signals
 * filter by signal

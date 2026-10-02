@@ -43,6 +43,7 @@ Entity_type_to_gui_type = {
     ["electric-turret"]          = defines.relative_gui_type.turret_gui,
     ["fluid-turret"]             = defines.relative_gui_type.turret_gui,
     ["artillery-turret"]         = defines.relative_gui_type.artillery_turret_gui,
+    ["radar"]                    = defines.relative_gui_type.radar_gui,
 
     -- Zuginfrastruktur
     ["train-stop"]               = defines.relative_gui_type.train_stop_gui,
@@ -53,6 +54,10 @@ Entity_type_to_gui_type = {
     -- Flüssigkeiten & Rohre
     ["storage-tank"]             = defines.relative_gui_type.storage_tank_gui,
     ["pump"]                     = defines.relative_gui_type.pump_gui,
+
+    -- space
+    ["space-platform-hub"]       = defines.relative_gui_type.space_platform_hub_gui,
+    ["asteroid-collector"]       = defines.relative_gui_type.asteroid_collector_gui,
 
     -- Sonstiges & Spezielle GUIs
     ["roboport"]                 = defines.relative_gui_type.roboport_gui,
@@ -65,4 +70,5 @@ Entity_type_to_gui_type = {
     ["infinity-container"]       = defines.relative_gui_type.infinity_container_gui,
     ["infinity-pipe"]            = defines.relative_gui_type.infinity_pipe_gui,
     ["heat-interface"]           = defines.relative_gui_type.heat_interface_gui
+
 }
