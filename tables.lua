@@ -52,7 +52,7 @@ Entity_type_to_gui_type = {
     ["rail-chain-signal"]        = defines.relative_gui_type.rail_chain_signal_gui,
 
     -- Flüssigkeiten & Rohre
-    ["storage-tank"]             = defines.relative_gui_type.storage_tank_gui,
+    ["storage-tank"]             = defines.relative_gui_type.pipe_gui,
     ["pump"]                     = defines.relative_gui_type.pump_gui,
 
     -- space

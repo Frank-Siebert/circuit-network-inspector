@@ -206,6 +206,14 @@ local function behavior_signals(entity, behavior, wire_type)
       -- TODO possibly incomplete
     end
 
+  elseif t == defines.control_behavior.type.single_fluid_box then
+    if (output_ok and behavior.read_temperature) then
+      -- TODO
+    end
+    if (output_ok and behavior.circuit_exclusive_mode_of_operation) then -- TODO operation is an enum
+      add_write("__dynamic") -- TODO bad, bad.
+    end
+
   elseif t == defines.control_behavior.type.accumulator then
     if output_ok and behavior.read_charge then add_write(behavior.output_signal) end
 
