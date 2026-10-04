@@ -136,6 +136,18 @@ local function behavior_accesses(entity, behavior, wire_type)
   })
   end
 
+  local function add_set(text, signal, value)
+    local write_contribution= {}
+    write_contribution[signal] = value
+      add_access(text .. signal_to_rich_text(signal) .. " = " .. value,
+         write_contribution,
+        {
+          description = "set a value",
+          direct_access = { signal },
+          matches = function (s) return s == signal end
+        })
+  end
+
   local function add_comparison(text, circuit_condition)
       add_access(text .. signal_to_rich_text(circuit_condition.first_signal)
                               .. circuit_condition.comparator
@@ -164,7 +176,7 @@ local function behavior_accesses(entity, behavior, wire_type)
   if t == "TODOfirst in list" then
   elseif t == defines.control_behavior.type.single_fluid_box then
     if (output_ok and behavior.read_temperature) then
-      -- TODO
+      add_set("set temperature ", behavior.temperature_signal, entity.get_fluid(1).temperature)
     end
     if (output_ok and behavior.circuit_exclusive_mode_of_operation) then -- TODO operation is an enum
       add_access("read fluid, currently " .. string.format("[fluid=%s]",(entity.get_fluid(1).name)),{},
