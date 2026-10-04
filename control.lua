@@ -98,7 +98,7 @@ end
 
 local function signal_to_rich_text(signalID)
     if not signalID then
-        return ""
+        return nil
     end
     local type = signalID.type
     if not type then type = "item"
@@ -109,6 +109,69 @@ local function signal_to_rich_text(signalID)
         type,
         signalID.name
     )
+end
+
+--[[
+behavior_access = {
+  currentWriteContribution :: table from SignalID to value
+  dynamicPotentials :: {
+     description:: text,
+     directAccess :: array SignalID?,
+     matches :: function (SignalID) to boolean
+  }
+  text :: rich text
+  access :: enum { write, read } --
+}
+]]
+
+local function behavior_accesses(entity, behavior, wire_type)
+  local result = {}
+
+  local function add_access(text, currentwrite, potentials)
+    table.insert(result,
+  {
+    text = text,
+    currentwrite = currentwrite, -- nil: it is a read.
+    dynamic_potentials = potentials,
+  })
+  end
+
+  if not behavior then return result end
+
+  local input_ok = network_selected(behavior.input_networks, wire_type)
+  local output_ok = network_selected(behavior.output_networks, wire_type)
+
+  local has_circuit_enable_disable, value = pcall(function() return behavior["circuit_enable_disable"] end)
+  if has_circuit_enable_disable and
+     input_ok and behavior.circuit_enable_disable and behavior.circuit_condition then
+      game.print("we have an add_access")
+      add_access("Enable if " .. signal_to_rich_text(behavior.circuit_condition.first_signal)
+                              .. behavior.circuit_condition.comparator
+                              .. (signal_to_rich_text(behavior.circuit_condition.second_signal) or behavior.circuit_condition.constant),
+                              nil,
+                      {
+      description = "control comparison",
+      direct_access = {behavior.circuit_condition.first_signal, behavior.circuit_condition.second_signal},
+      matches = function (signal) return signal == behavior.circuit_condition.first_signal or (behavior.circuit_condition.second_signal and behavior.circuit_condition.second_signal == signal) end
+    })
+  end
+
+  local t = behavior.type
+  if t == "TODOfirst in list" then
+  elseif t == defines.control_behavior.type.single_fluid_box then
+    if (output_ok and behavior.read_temperature) then
+      -- TODO
+    end
+    if (output_ok and behavior.circuit_exclusive_mode_of_operation) then -- TODO operation is an enum
+      add_access("read fluid, currently " .. string.format("[fluid=%s]",(entity.get_fluid(1).name)),{},
+    {
+      description = "any fluid",
+      direct_access = nil,
+      matches = function (signal) return signal.type == "fluid" end
+    })
+    end
+  end
+  return result
 end
 
 -- Returns the signals explicitly accessed by a behavior.
@@ -297,7 +360,10 @@ local function entity_roles(entity, network)
   local input_ok = network_selected(behavior.input_networks, network.wire_type)
   local output_ok = network_selected(behavior.output_networks, network.wire_type)
 
+  local accesses = behavior_accesses(entity, behavior, network.wire_type)
   local reads, writes = behavior_signals(entity, behavior, network.wire_type)
+  readers  = accesses
+  writers = accesses
 
   if input_ok then
     for _, _ in pairs(reads) do
@@ -325,7 +391,7 @@ local function entity_roles(entity, network)
     end]]
   end
 
-  return readers, writers
+  return accesses
 end
 
 local function refs_match(refs, selected)
@@ -384,7 +450,7 @@ local function entity_rich_text(entity)
     )
 end
 
-local function add_entity_button(parent, entity, network, role, selected)
+local function add_entity_button(parent, entity, network, role, selected, accesses)
   unit_number_to_entity[entity.unit_number] = entity
   local b = parent.add{
     type = "button",
@@ -396,6 +462,12 @@ local function add_entity_button(parent, entity, network, role, selected)
       unit_number = entity.unit_number
     }
   }
+  for _, access in pairs(accesses) do
+    parent.add({
+      type = "label",
+      caption = access.text
+    })
+  end
   b.tooltip = entity.name
 end
 
@@ -485,17 +557,16 @@ local function refresh(player)
   local readers, writers = {}, {}
 
   for _, entity in pairs(entities) do
-    local r, w = entity_roles(entity, network)
-    local reader_match = next(r) and (selected == nil or r[signal_key(selected)] or r.__generic)
-    local writer_match = next(w) and (selected == nil or w[signal_key(selected)] or w.__generic)
+    local a = entity_roles(entity, network)
+    local access_match = next(a) and (selected == nil or a[signal_key(selected)] or a.__generic)
 
-    if reader_match then table.insert(readers, entity) end
-    if writer_match then table.insert(writers, entity) end
+    if access_match then table.insert(readers, { entity = entity, accesses = a }) end
+    if access_match then table.insert(writers, { entity = entity, accesses = a }) end
   end
 
   local function sort_entities(list)
     table.sort(list, function(a,b)
-      return tostring(a.localised_name or a.name) < tostring(b.localised_name or b.name)
+      return tostring(a.entity.localised_name or a.entity.name) < tostring(b.entity.localised_name or b.entity.name)
     end)
   end
   sort_entities(writers)
@@ -503,13 +574,13 @@ local function refresh(player)
 
   right.add{type="label", caption="WRITERS"}
   for _, entity in pairs(writers) do
-    add_entity_button(right, entity, "writer", selected)
+    add_entity_button(right, entity.entity, nil, "writer", selected, entity.accesses)
   end
 
   right.add{type="line"}
   right.add{type="label", caption="READERS"}
   for _, entity in pairs(readers) do
-    add_entity_button(right, entity, "reader", selected)
+    add_entity_button(right, entity.entity, nil, "reader", selected, entity.accesses)
   end
 
   if #writers == 0 and #readers == 0 then
@@ -596,7 +667,7 @@ local function focus_entity(player, entity)
 
     player.centered_on = entity
     player.zoom = player.zoom_limits.closest.zoom
-    player.print(entity.gps_tag)
+    player.print(entity.gps_tag) -- this is the only `player.print` that should remain after removing debugging
 end
 
 local function network_to_text(network)
@@ -655,7 +726,6 @@ local function add_relative_button(player, entity)
           network = network
       }
     }
-    game.print("entity has get_entity_by_unit_number " .. tostring(entity.prototype.has_flag("get-by-unit-number"))) -- prints false, so no findings (later) do not surprise
   end
   player.gui.relative[BUTTON].add{type="line"}
   player.gui.relative[BUTTON].add{
