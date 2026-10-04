@@ -138,7 +138,7 @@ local function behavior_accesses(entity, behavior, wire_type)
 
   local function add_set(text, signal, value)
     local write_contribution= {}
-    write_contribution[signal] = value
+    write_contribution[signal] = value -- todo index
       add_access(text .. signal_to_rich_text(signal) .. " = " .. value,
          write_contribution,
         {
@@ -146,6 +146,16 @@ local function behavior_accesses(entity, behavior, wire_type)
           direct_access = { signal },
           matches = function (s) return s == signal end
         })
+  end
+
+  local function add_simple_read(text, signal)
+    add_access(text, nil,  
+        {
+          description = "read a value",
+          direct_access = { signal },
+          matches = function (s) return s == signal end
+        })
+
   end
 
   local function add_comparison(text, circuit_condition)
@@ -174,6 +184,31 @@ local function behavior_accesses(entity, behavior, wire_type)
 
   local t = behavior.type
   if t == "TODOfirst in list" then
+  elseif t == defines.control_behavior.type.container
+      or t == defines.control_behavior.type.logistic_container
+      or t == defines.control_behavior.type.proxy_container then
+    if output_ok and behavior.read_contents then
+      -- Dynamic contents: actual signals are determined from the inventory.
+      local inventory = entity.get_inventory(defines.inventory.chest)
+      local write_contrib = {}
+      if inventory then
+        for _, item in pairs(inventory.get_contents()) do
+          table.insert(write_contrib,{signalID = {type="item", name=item.name}, count = item.count})
+        end
+      end
+      add_access("read contents " --[[ TODO items]], write_contrib, {
+        description ="any item",
+        direct_access = nil,
+        matches = function (signal) return not signal.type or signal.type == "item" end
+      })
+    end
+    if t == defines.control_behavior.type.logistic_container then
+      if input_ok then
+        --add_read("__dynamic")
+      end
+      -- TODO set requests
+    end
+
   elseif t == defines.control_behavior.type.single_fluid_box then
     if (output_ok and behavior.read_temperature) then
       add_set("set temperature ", behavior.temperature_signal, entity.get_fluid(1).temperature)
@@ -186,6 +221,28 @@ local function behavior_accesses(entity, behavior, wire_type)
       matches = function (signal) return signal.type == "fluid" end
     })
     end
+  elseif t == defines.control_behavior.type.inserter then
+    if input_ok and behavior.circuit_set_stack_size then
+      add_simple_read("set stack size ", behavior.circuit_stack_control_signal)
+    end
+    if output_ok and behavior.circuit_read_hand_contents then
+      -- Dynamic: the hand contents are not represented by a fixed signal.
+      -- We add the current hand item, when available.
+      local hand = entity.held_stack
+      local currentwrite = {}
+      if hand and hand.valid_for_read then
+        --add_write({type="item", name=hand.name})
+        table.insert(currentwrite,{{type="item", name=hand.name},hand.count})
+      end
+      add_access("read hand contents ",currentwrite,
+    {
+      description = "any item",
+      direct_access = nil,
+      matches = function (signal) return not signal.type or signal.type == "item" end
+    })
+    end
+
+
   end
   return result
 end
