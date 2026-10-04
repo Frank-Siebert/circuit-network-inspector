@@ -574,13 +574,21 @@ local function refresh(player)
 
   right.add{type="label", caption="WRITERS"}
   for _, entity in pairs(writers) do
-    add_entity_button(right, entity.entity, nil, "writer", selected, entity.accesses)
+    local write = false
+    for _,a in ipairs(entity.accesses) do
+      if a.currentwrite ~= nil then write = true; break; end
+    end
+    if write then add_entity_button(right, entity.entity, nil, "writer", selected, entity.accesses) end
   end
 
   right.add{type="line"}
   right.add{type="label", caption="READERS"}
   for _, entity in pairs(readers) do
-    add_entity_button(right, entity.entity, nil, "reader", selected, entity.accesses)
+    local read = false
+    for _,a in ipairs(entity.accesses) do
+      if a.currentwrite == nil then read = true; break; end
+    end
+    if read then add_entity_button(right, entity.entity, nil, "reader", selected, entity.accesses) end
   end
 
   if #writers == 0 and #readers == 0 then
