@@ -26,9 +26,7 @@ a later version should expose network selection explicitly.
 * rewrite section above, chatGPT output is obsolete
 * handle combinators with their 2 connection points better
 * some entities might be missing, e.g. labs
-* output the usage of the signals
 * filter by signal
-
-### conceptual
 * clearer distinction between current signals, potential outputs (decider) and dynamic outputs
-* the entity list should contain the actual accesses, like "enable if [V] < 150"
+* the entity list should contain the actual accesses, like "enable if [V] < 150", more of it. do for everything or let AI do it.
+

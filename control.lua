@@ -131,9 +131,21 @@ local function behavior_accesses(entity, behavior, wire_type)
     table.insert(result,
   {
     text = text,
-    currentwrite = currentwrite, -- nil: it is a read.
+    currentwrite = currentwrite, -- nil: it is a read. might be empty list or more for writes
     dynamic_potentials = potentials,
   })
+  end
+
+  local function add_comparison(text, circuit_condition)
+      add_access(text .. signal_to_rich_text(circuit_condition.first_signal)
+                              .. circuit_condition.comparator
+                              .. (signal_to_rich_text(circuit_condition.second_signal) or circuit_condition.constant),
+                              nil,
+                      {
+      description = "control comparison",
+      direct_access = {circuit_condition.first_signal, circuit_condition.second_signal},
+      matches = function (signal) return signal == circuit_condition.first_signal or (circuit_condition.second_signal and circuit_condition.second_signal == signal) end
+                      })
   end
 
   if not behavior then return result end
@@ -145,15 +157,7 @@ local function behavior_accesses(entity, behavior, wire_type)
   if has_circuit_enable_disable and
      input_ok and behavior.circuit_enable_disable and behavior.circuit_condition then
       game.print("we have an add_access")
-      add_access("Enable if " .. signal_to_rich_text(behavior.circuit_condition.first_signal)
-                              .. behavior.circuit_condition.comparator
-                              .. (signal_to_rich_text(behavior.circuit_condition.second_signal) or behavior.circuit_condition.constant),
-                              nil,
-                      {
-      description = "control comparison",
-      direct_access = {behavior.circuit_condition.first_signal, behavior.circuit_condition.second_signal},
-      matches = function (signal) return signal == behavior.circuit_condition.first_signal or (behavior.circuit_condition.second_signal and behavior.circuit_condition.second_signal == signal) end
-    })
+      add_comparison("Enable if ", behavior.circuit_condition)
   end
 
   local t = behavior.type
