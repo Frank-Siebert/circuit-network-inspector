@@ -166,7 +166,7 @@ local function behavior_accesses(entity, behavior, wire_type)
                       {
       description = "control comparison",
       direct_access = {circuit_condition.first_signal, circuit_condition.second_signal},
-      matches = function (signal) return signal == circuit_condition.first_signal or (circuit_condition.second_signal and circuit_condition.second_signal == signal) end
+      matches = function (signal) return same_signal(signal, circuit_condition.first_signal) or (circuit_condition.second_signal and same_signal(circuit_condition.second_signal,signal)) end
                       })
   end
 
@@ -217,7 +217,7 @@ local function behavior_accesses(entity, behavior, wire_type)
       add_access("read fluid, currently " .. string.format("[fluid=%s]",(entity.get_fluid(1).name)),{},
     {
       description = "any fluid",
-      direct_access = nil,
+      direct_access = {  }, -- TODO set to currently read
       matches = function (signal) return signal.type == "fluid" end
     })
     end
@@ -631,7 +631,7 @@ local function refresh(player)
 
   for _, entity in pairs(entities) do
     local a = entity_roles(entity, network)
-    local access_match = next(a) and (selected == nil or a[signal_key(selected)] or a.__generic)
+    local access_match = next(a) and (selected == nil or true) -- TODO check all accesses
 
     if access_match then table.insert(readers, { entity = entity, accesses = a }) end
     if access_match then table.insert(writers, { entity = entity, accesses = a }) end
@@ -649,7 +649,7 @@ local function refresh(player)
   for _, entity in pairs(writers) do
     local write = false
     for _,a in ipairs(entity.accesses) do
-      if a.currentwrite ~= nil then write = true; break; end
+      if a.currentwrite ~= nil and (selected == nil or a.dynamic_potentials.matches(selected)) then write = true; break; end
     end
     if write then add_entity_button(right, entity.entity, nil, "writer", selected, entity.accesses) end
   end
@@ -659,7 +659,7 @@ local function refresh(player)
   for _, entity in pairs(readers) do
     local read = false
     for _,a in ipairs(entity.accesses) do
-      if a.currentwrite == nil then read = true; break; end
+      if a.currentwrite == nil and (selected == nil or a.dynamic_potentials.matches(selected)) then read = true; break; end
     end
     if read then add_entity_button(right, entity.entity, nil, "reader", selected, entity.accesses) end
   end
