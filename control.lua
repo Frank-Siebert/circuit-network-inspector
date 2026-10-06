@@ -627,44 +627,29 @@ local function refresh(player)
   local selected = state.signal
 
   local entities = collect_network(source, network)
-  local readers, writers = {}, {}
-
-  for _, entity in pairs(entities) do
-    local a = entity_roles(entity, network)
-    local access_match = next(a) and (selected == nil or true) -- TODO check all accesses
-
-    if access_match then table.insert(readers, { entity = entity, accesses = a }) end
-    if access_match then table.insert(writers, { entity = entity, accesses = a }) end
-  end
-
-  local function sort_entities(list)
-    table.sort(list, function(a,b)
-      return tostring(a.entity.localised_name or a.entity.name) < tostring(b.entity.localised_name or b.entity.name)
-    end)
-  end
-  sort_entities(writers)
-  sort_entities(readers)
 
   right.add{type="label", caption="WRITERS"}
-  for _, entity in pairs(writers) do
+  for _, entity in pairs(entities) do
     local write = false
-    for _,a in ipairs(entity.accesses) do
-      if a.currentwrite ~= nil and (selected == nil or a.dynamic_potentials.matches(selected)) then write = true; break; end
+    local writes = {}
+    for _,a in ipairs(entity_roles(entity, network)) do
+      if a.currentwrite ~= nil and (selected == nil or a.dynamic_potentials.matches(selected)) then write = true; table.insert(writes,a) end
     end
-    if write then add_entity_button(right, entity.entity, nil, "writer", selected, entity.accesses) end
+    if write then add_entity_button(right, entity, nil, "writer", selected, writes) end
   end
 
   right.add{type="line"}
   right.add{type="label", caption="READERS"}
-  for _, entity in pairs(readers) do
+  for _, entity in pairs(entities) do
     local read = false
-    for _,a in ipairs(entity.accesses) do
-      if a.currentwrite == nil and (selected == nil or a.dynamic_potentials.matches(selected)) then read = true; break; end
+    local reads = {}
+    for _,a in ipairs(entity_roles(entity, network)) do
+      if a.currentwrite == nil and (selected == nil or a.dynamic_potentials.matches(selected)) then read = true; table.insert(reads, a) break; end
     end
-    if read then add_entity_button(right, entity.entity, nil, "reader", selected, entity.accesses) end
+    if read then add_entity_button(right, entity, nil, "reader", selected, reads) end
   end
 
-  if #writers == 0 and #readers == 0 then
+  if false and (#writers == 0 and #readers == 0) then -- TODO fix.
     right.add{type="label", caption="No matching entities."}
   end
 end
