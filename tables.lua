@@ -59,6 +59,8 @@ Entity_type_to_gui_type = {
     ["space-platform-hub"]       = defines.relative_gui_type.space_platform_hub_gui,
     ["asteroid-collector"]       = defines.relative_gui_type.asteroid_collector_gui,
 
+    ["agricultural-tower"]       = defines.relative_gui_type.agriculture_tower_gui,
+
     -- Sonstiges & Spezielle GUIs
     ["roboport"]                 = defines.relative_gui_type.roboport_gui,
     ["splitter"]                 = defines.relative_gui_type.splitter_gui,
