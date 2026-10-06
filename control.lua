@@ -601,9 +601,9 @@ local function refresh(player)
 
   local signal_button = left.add{
     type = "choose-elem-button",
-    name = "cni_signal",
+    name = "cni_signal_filter",
     elem_type = "signal",
-    signal_type = "virtual"
+    signal = state.signal
 }
 
   local signals = network.signals or {}
@@ -813,7 +813,7 @@ local function add_relative_button(player, entity)
     type = "button",
     name = BUTTON .. "focus",
     caption = "focus entity",
-    tooltip = "this is useful if you opened from the network inspector and don't know where the entity is",
+    tooltip = "this is useful if you opened this entity from the network inspector and don't know where it is",
     tags = {
       cni_action = "focus_entity",
       unit_number = entity.unit_number
@@ -909,6 +909,26 @@ script.on_event(defines.events.on_gui_click, function(event)
   elseif action == "focus_entity" then
     local entity = unit_number_to_entity[element.tags.unit_number]
     focus_entity(player,entity)
+  end
+end)
+
+script.on_event(defines.events.on_gui_elem_changed, function(event)
+
+  if event.element.name == "cni_signal_filter" then
+
+    local signal = event.element.elem_value
+    storage.cni[event.player_index].signal = signal
+    if signal then
+        game.print(
+            "Selected: "
+            .. (signal.type or "item")
+            .. "="
+            .. signal.name
+        )
+    else
+        game.print("No signal selected")
+    end
+    refresh(game.get_player(event.player_index))
   end
 end)
 
