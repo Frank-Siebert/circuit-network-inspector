@@ -149,7 +149,7 @@ local function behavior_accesses(entity, behavior, wire_type)
   end
 
   local function add_simple_read(text, signal)
-    add_access(text, nil,  
+    add_access(text, nil,
         {
           description = "read a value",
           direct_access = { signal },
@@ -183,7 +183,23 @@ local function behavior_accesses(entity, behavior, wire_type)
   end
 
   local t = behavior.type
-  if t == "TODOfirst in list" then
+  if t == defines.control_behavior.type.arithmetic_combinator then
+    local p = behavior.parameters
+    if p then
+      add_access((signal_to_rich_text(p.first_signal) or p.first_constant)
+               .. p.operation ..
+                 (signal_to_rich_text(p.second_signal) or p.second_constant), nil,
+                {
+      description = "arithmetic operation",
+      direct_access = { p.first_signal, p.second_signal},
+      matches = function (signal) return (p.first_signal and same_signal(signal, p.first_signal)) or (p.second_signal and same_signal(p.second_signal,signal)) end
+                      })
+
+      -- if output_ok then add_write(p.output_signal) end
+      add_set("result", p.output_signal, "behavior.signals_last_tick") -- TODO. add_set for single signal only, might be many?
+--      add_set("result", p.output_signal, behavior.signals_last_tick) -- TODO. add_set for single signal only, might be many?
+    end
+
   elseif t == defines.control_behavior.type.container
       or t == defines.control_behavior.type.logistic_container
       or t == defines.control_behavior.type.proxy_container then
@@ -434,36 +450,6 @@ local function entity_roles(entity, network)
   local output_ok = network_selected(behavior.output_networks, network.wire_type)
 
   local accesses = behavior_accesses(entity, behavior, network.wire_type)
-  local reads, writes = behavior_signals(entity, behavior, network.wire_type)
-  readers  = accesses
-  writers = accesses
-
-  if input_ok then
-    for _, _ in pairs(reads) do
-      readers = reads
-      break
-    end
-    --[[
-    -- A generic condition reader should count even if there is no signal
-    -- reference we could extract.
-    if behavior.circuit_enable_disable and behavior.circuit_condition then
-      readers.__generic = true
-    end]]
-  end
-
-  if output_ok then
-    for _, _ in pairs(writes) do
-      writers = writes
-      break
-    end
-    --[[
-    -- Some behaviors output dynamic signals (inventory, fuel, etc.).
-    if behavior.circuit_read_contents or behavior.circuit_read_hand_contents
-        or behavior.circuit_read_fuel or behavior.circuit_read_temperature or behavior.circuit_read_signal then
-      writers.__generic = true
-    end]]
-  end
-
   return accesses
 end
 
