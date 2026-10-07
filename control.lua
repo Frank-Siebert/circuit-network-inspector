@@ -595,7 +595,7 @@ local function refresh_accesses(player, network)
   if not network then network = network_from_state(state) end
   local source = unit_number_to_entity[ state.source_unit_number]
   
-  local selected = state.signal
+  local selected = state.options.signal
 
   local entities = collect_network(source, network)
 
@@ -649,7 +649,11 @@ local function open_inspector(player, source, network)
     source_unit_number = source.unit_number,
     network_id = network.id,
     wire_type = network.wire_type,
-    signal = nil
+    options = {
+      signal = nil,
+      literal_matching = false,
+      current_writes = false
+    }
   }
 
   if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
@@ -717,8 +721,10 @@ local function open_inspector(player, source, network)
     type = "choose-elem-button",
     name = "cni_signal_filter",
     elem_type = "signal",
-    signal = state.signal
+    signal = state.options.signal
   }
+  options.add{name="cni_literal_matching", type="checkbox", caption="literal matching caption", tooltip="literal matching tooltip", state=state.options.literal_matching}
+  options.add{name="cni_current_writes", type="checkbox", caption="current writes caption", tooltip="current writes tooltip", state=state.options.current_writes}
 
   local body = frame.add{type="flow", name="body", direction="horizontal"}
   body.style.horizontally_stretchable = true
@@ -873,17 +879,10 @@ script.on_event(defines.events.on_gui_click, function(event)
       player.print("No circuit network found.")
     end
 
-  elseif action == "filter_all" then
+  elseif action == "filter_signal" then -- currently dead, no such action
     local state = storage.cni and storage.cni[player.index]
     if state then
-      state.signal = nil
-      refresh(player)
-    end
-
-  elseif action == "filter_signal" then
-    local state = storage.cni and storage.cni[player.index]
-    if state then
-      state.signal = {
+      state.options.signal = {
         type = element.tags.signal_type,
         name = element.tags.signal_name,
         quality = element.tags.signal_quality
@@ -913,7 +912,7 @@ script.on_event(defines.events.on_gui_elem_changed, function(event)
   if event.element.name == "cni_signal_filter" then
 
     local signal = event.element.elem_value
-    storage.cni[event.player_index].signal = signal
+    storage.cni[event.player_index].options.signal = signal
     if signal then
         game.print(
             "Selected: "
@@ -924,6 +923,13 @@ script.on_event(defines.events.on_gui_elem_changed, function(event)
     else
         game.print("No signal selected")
     end
+    refresh_accesses(game.get_player(event.player_index))
+
+  elseif event.element.name == "cni_literal_matching" then
+    storage.cni[event.player_index].options.literal_matching = event.element.state
+    refresh_accesses(game.get_player(event.player_index))
+  elseif event.element.name == "cni_current_writes" then
+    storage.cni[event.player_index].options.current_writes = event.element.state
     refresh_accesses(game.get_player(event.player_index))
   end
 end)
