@@ -541,9 +541,21 @@ end
 
 local function add_entity_button(parent, entity, network, role, selected, accesses)
   unit_number_to_entity[entity.unit_number] = entity
+
+  local description = ""
+  local description_full = entity.name
+  if entity.type == "constant-combinator" or
+     entity.type == "arithmetic-combinator" or
+     entity.type == "decider-combinator" or
+     entity.type == "selector-combinator" then
+    description_full = entity.combinator_description
+    description = description_full:match("^[^\r\n]*")
+  end
+
   local b = parent.add{
     type = "button",
-    caption =  entity_rich_text(entity),
+    caption =  entity_rich_text(entity) .. description,
+    tooltip = description_full,
     --caption =  entity_rich_text(entity) .. (entity.localised_name or entity.name),
     -- entity.localised_name is a table and cannot be concatenated. So caption can either be a string or a LocalisedString
     tags = {
@@ -557,7 +569,6 @@ local function add_entity_button(parent, entity, network, role, selected, access
       caption = access.text
     })
   end
-  b.tooltip = entity.name
 end
 
 local function refresh_signals(player, network)
