@@ -701,6 +701,8 @@ local function open_inspector(player, source, network)
   frame.style.width = 800
   frame.style.height = 600
 
+  local options = frame.add{type="flow", name="options", direction="vertical"}
+
   local body = frame.add{type="flow", name="body", direction="horizontal"}
   body.style.horizontally_stretchable = true
   body.style.vertically_stretchable = true
@@ -729,7 +731,7 @@ local function open_inspector(player, source, network)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
 
-  left.add{
+  options.add{
     type = "choose-elem-button",
     name = "cni_signal_filter",
     elem_type = "signal",
