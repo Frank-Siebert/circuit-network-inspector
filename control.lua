@@ -1,4 +1,5 @@
 require("tables")
+require("gui")
 
 local MOD = "circuit-network-inspector"
 local GUI = "cni_frame"
@@ -622,17 +623,7 @@ local function refresh(player)
   --  return signal_key(a.signal) < signal_key(b.signal)
   --end)
   for _, s in pairs(signals) do
-    local button = left.add{
-      type="button",
-      caption = signal_text(s.signal) .. "  " .. tostring(s.count),
-      tags = {
-        cni_action="filter_signal",
-        signal_type=s.signal.type or "item",
-        signal_name=s.signal.name,
-        signal_quality=s.signal.quality
-      }
-    }
-    button.style.horizontally_stretchable = true
+    left.add(Button_Signal(s))
   end
 
   local selected = state.signal
