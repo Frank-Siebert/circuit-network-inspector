@@ -556,6 +556,8 @@ local function add_entity_button(parent, entity, network, role, selected, access
   b.tooltip = entity.name
 end
 
+local refresh_signals, refresh_accesses
+
 local function refresh(player)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
@@ -583,8 +585,15 @@ local function refresh(player)
   local frame = player.gui.screen[GUI]
   if not frame then player.print("no frame");return end
 
+  refresh_signals(player, network)
+  refresh_accesses(player, network)
+end
+
+function refresh_signals(player, network)
+  local state = storage.cni and storage.cni[player.index]
+  if not state then return end
+
   local left  = player.gui.screen[GUI].body.left
-  local right = player.gui.screen[GUI].body.right_scroll_pane.accesses
 
   local signals = network.network.signals or {}
   --table.sort(signals, function(a,b)
@@ -594,11 +603,18 @@ local function refresh(player)
   for _, s in pairs(signals) do
     left.add(Button_Signal(s))
   end
+end
 
+function refresh_accesses(player, network)
+  local state = storage.cni and storage.cni[player.index]
+  if not state then return end
+  local source = unit_number_to_entity[ state.source_unit_number]
+  
   local selected = state.signal
 
   local entities = collect_network(source, network)
 
+  local right = player.gui.screen[GUI].body.right_scroll_pane.accesses
   clear_children(right)
 
   right.add{type="label", caption="WRITERS"}
