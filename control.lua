@@ -144,7 +144,7 @@ local function behavior_accesses(entity, behavior, wire_type)
         {
           description = "set a value",
           direct_access = { signal },
-          matches = function (s) return s == signal end
+          matches = function (s) return same_signal(s, signal) end
         })
   end
 
@@ -153,7 +153,7 @@ local function behavior_accesses(entity, behavior, wire_type)
         {
           description = "read a value",
           direct_access = { signal },
-          matches = function (s) return s == signal end
+          matches = function (s) return same_signal(s, signal) end
         })
 
   end
