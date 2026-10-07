@@ -1,4 +1,4 @@
-
+-- https://lua-api.factorio.com/latest/defines.html#defines.relative_gui_type
 Entity_type_to_gui_type = {
     -- Produktions- & Verarbeitungsmaschinen
     ["assembling-machine"]       = defines.relative_gui_type.assembling_machine_gui,
@@ -33,10 +33,11 @@ Entity_type_to_gui_type = {
     ["constant-combinator"]      = defines.relative_gui_type.constant_combinator_gui,
     ["arithmetic-combinator"]    = defines.relative_gui_type.arithmetic_combinator_gui,
     ["decider-combinator"]       = defines.relative_gui_type.decider_combinator_gui,
-    ["selector-combinator"]       = defines.relative_gui_type.selector_combinator_gui,
+    ["selector-combinator"]      = defines.relative_gui_type.selector_combinator_gui,
     ["programmable-speaker"]     = defines.relative_gui_type.programmable_speaker_gui,
     ["power-switch"]             = defines.relative_gui_type.power_switch_gui,
     ["lamp"]                     = defines.relative_gui_type.lamp_gui,
+    ["display-panel"]            = defines.relative_gui_type.display_panel_gui,
 
     -- Verteidigung & Kampf
     ["ammo-turret"]              = defines.relative_gui_type.turret_gui,

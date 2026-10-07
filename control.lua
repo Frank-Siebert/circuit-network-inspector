@@ -748,6 +748,7 @@ local function focus_entity(player, entity)
     player.print(entity.gps_tag) -- this is the only `player.print` that should remain after removing debugging
 end
 
+-- only used in gui.
 local function network_to_text(network)
   if network.network.wire_connector_id == defines.wire_connector_id.circuit_red then
      return "[item=red-wire] " .. network.id
