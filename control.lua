@@ -583,34 +583,8 @@ local function refresh(player)
   local frame = player.gui.screen[GUI]
   if not frame then player.print("no frame");return end
 
-  local body = frame.body
-  clear_children(body)
-
-  --local left = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
-  --left.style.width = 260
-  local left = body.add{type="table", column_count = 10 }
-
-  local right_scroll_pane = body.add{
-    type = "scroll-pane",
-    name = "right-scroll-pane",
-    direction = "vertical"
-  }
-
-  right_scroll_pane.style.vertically_stretchable = true
-  right_scroll_pane.style.horizontally_stretchable = true
-
-  local right = right_scroll_pane.add{
-    type = "flow",
-    name = "right_content",
-    direction = "vertical"
-  }
-
-  local signal_button = left.add{
-    type = "choose-elem-button",
-    name = "cni_signal_filter",
-    elem_type = "signal",
-    signal = state.signal
-}
+  local left  = player.gui.screen[GUI].body.left
+  local right = player.gui.screen[GUI].body.right_scroll_pane.accesses
 
   local signals = network.network.signals or {}
   --table.sort(signals, function(a,b)
@@ -713,6 +687,38 @@ local function open_inspector(player, source, network)
   local body = frame.add{type="flow", name="body", direction="horizontal"}
   body.style.horizontally_stretchable = true
   body.style.vertically_stretchable = true
+
+  local body = frame.body
+  clear_children(body)
+
+  --local left = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
+  --left.style.width = 260
+  local left = body.add{name="left", type="table", column_count = 10  }
+
+  local right_scroll_pane = body.add{
+    type = "scroll-pane",
+    name = "right_scroll_pane",
+    direction = "vertical"
+  }
+
+  right_scroll_pane.style.vertically_stretchable = true
+  right_scroll_pane.style.horizontally_stretchable = true
+
+  right_scroll_pane.add{
+    type = "flow",
+    name = "accesses",
+    direction = "vertical"
+  }
+
+  local state = storage.cni and storage.cni[player.index]
+  if not state then return end
+
+  left.add{
+    type = "choose-elem-button",
+    name = "cni_signal_filter",
+    elem_type = "signal",
+    signal = state.signal
+  }
 
   refresh(player)
 end
