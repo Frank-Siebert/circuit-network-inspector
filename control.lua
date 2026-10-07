@@ -145,9 +145,8 @@ local function behavior_accesses(entity, behavior, wire_type)
   end
 
   local function add_set(text, signal, value)
-    local write_contribution= {}
-    write_contribution[signal] = value -- todo index
-      add_access(text .. signal_to_rich_text(signal) .. " = " .. value,
+    local write_contribution = { [signal_key(signal)] = value }
+      add_access(text .. signal_to_rich_text(signal) .. " = " .. (value or "(not set)"),
          write_contribution,
         {
           description = "set a value",
@@ -225,8 +224,8 @@ local function behavior_accesses(entity, behavior, wire_type)
         end
       end
       if output_ok then
-        for _, o in pairs(p.outputs      or {}) do add_set("output ", o.signal,(o.copy_count_from_input and "input") or o.constant or "1") end -- TODO it ain't 42
-        for _, o in pairs(p.else_outputs or {}) do add_set("else "  , o.signal,(o.copy_count_from_input and "input") or o.constant or "1") end -- "defaults to 1"
+        for _, o in pairs(p.outputs      or {}) do add_set("output ", o.signal,behavior.get_signal_last_tick(o.signal)) end
+        for _, o in pairs(p.else_outputs or {}) do add_set("else "  , o.signal,behavior.get_signal_last_tick(o.signal)) end
       end
     end
 
@@ -594,13 +593,25 @@ local function refresh_signals(player, network)
   end
 end
 
+local function is_access(a, options, filter_writes)
+  local a_is_write = a.currentwrite ~= nil
+  if a_is_write ~= filter_writes then return false end
+  if options.signal == nil then return true
+  else
+    game.print("advanced is_access "..tostring(a_is_write)..", option.cw ".. tostring(options.current_writes) .. ", signal_key" .. signal_key(options.signal))
+    -- TODO check options.literal_matching
+    if a_is_write and options.current_writes then return a.currentwrite[signal_key(options.signal)] end
+    return a.dynamic_potentials.matches(options.signal)
+  end
+end
+
 local function refresh_accesses(player, network)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
   if not network then network = network_from_state(state) end
   local source = unit_number_to_entity[ state.source_unit_number]
   
-  local selected = state.options.signal
+  local options = state.options
 
   local entities = collect_network(source, network)
 
@@ -612,9 +623,9 @@ local function refresh_accesses(player, network)
     local write = false
     local writes = {}
     for _,a in ipairs(entity_roles(entity, network)) do
-      if a.currentwrite ~= nil and (selected == nil or a.dynamic_potentials.matches(selected)) then write = true; table.insert(writes,a) end
+      if is_access(a,options,true) then write = true; table.insert(writes,a) end
     end
-    if write then add_entity_button(right, entity, nil, "writer", selected, writes) end
+    if write then add_entity_button(right, entity, nil, "writer", options.signal, writes) end
   end
 
   right.add{type="line"}
@@ -623,9 +634,9 @@ local function refresh_accesses(player, network)
     local read = false
     local reads = {}
     for _,a in ipairs(entity_roles(entity, network)) do
-      if a.currentwrite == nil and (selected == nil or a.dynamic_potentials.matches(selected)) then read = true; table.insert(reads, a) end
+      if is_access(a,options,false) then read = true; table.insert(reads, a) end
     end
-    if read then add_entity_button(right, entity, nil, "reader", selected, reads) end
+    if read then add_entity_button(right, entity, nil, "reader", options.signal, reads) end
   end
 
   if false and (#writers == 0 and #readers == 0) then -- TODO fix.
@@ -931,8 +942,11 @@ script.on_event(defines.events.on_gui_elem_changed, function(event)
     end
     refresh_options(event.element.parent.parent, signal ~= nil)
     refresh_accesses(game.get_player(event.player_index))
+  end
+end)
 
-  elseif event.element.name == "cni_literal_matching" then
+script.on_event(defines.events.on_gui_checked_state_changed, function(event)
+  if event.element.name == "cni_literal_matching" then
     storage.cni[event.player_index].options.literal_matching = event.element.state
     refresh_accesses(game.get_player(event.player_index))
   elseif event.element.name == "cni_current_writes" then
