@@ -772,6 +772,7 @@ local function add_relative_button(player, entity)
 
   local networks = circuit_networks(entity)
   if empty(networks) then return end
+  if not Entity_type_to_gui_type[entity.type] then player.print("Missing " .. entity.type .. " in table") ; return end
   player.gui.relative.add{
     type = "frame",
     name = BUTTON,
