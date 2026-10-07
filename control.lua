@@ -590,6 +590,7 @@ local function refresh(player)
   --table.sort(signals, function(a,b)
   --  return signal_key(a.signal) < signal_key(b.signal)
   --end)
+  clear_children(left)
   for _, s in pairs(signals) do
     left.add(Button_Signal(s))
   end
@@ -597,6 +598,8 @@ local function refresh(player)
   local selected = state.signal
 
   local entities = collect_network(source, network)
+
+  clear_children(right)
 
   right.add{type="label", caption="WRITERS"}
   for _, entity in pairs(entities) do
@@ -689,7 +692,6 @@ local function open_inspector(player, source, network)
   body.style.vertically_stretchable = true
 
   local body = frame.body
-  clear_children(body)
 
   --local left = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
   --left.style.width = 260
