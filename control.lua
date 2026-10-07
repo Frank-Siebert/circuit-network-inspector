@@ -35,6 +35,12 @@ local function circuit_networks(entity)
   return result
 end
 
+local function network_from_state(state)
+  local source = unit_number_to_entity[ state.source_unit_number]
+  if not source or not source.valid then return nil end
+  return circuit_networks(source)[tostring(tostring(state.network_id) .. ":" .. tostring(state.wire_type))]
+end
+
 local function signal_key(signal)
   if not signal then return nil end
   return (signal.type or "item") .. ":" .. tostring(signal.name) .. " q=" .. tostring(signal.quality or "normal")
@@ -612,14 +618,9 @@ local function refresh(player)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
 
-  local source = unit_number_to_entity[ state.source_unit_number]
-  if not source or not source.valid then
-    if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
-    return
-  end
-  local network = circuit_networks(source)[tostring(tostring(state.network_id) .. ":" .. tostring(state.wire_type))]
+  local network = network_from_state(state)
 
-  if not network then player.print("no network");return end
+  if not network then if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end return end
 
   local frame = player.gui.screen[GUI]
   if not frame then player.print("no frame");return end
