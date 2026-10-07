@@ -20,7 +20,7 @@ local function circuit_networks(entity)
     if connector.valid and connector.network_id and connector.network_id ~= 0 then
       local network = entity.get_circuit_network(id)
       if network and network.valid then
-        local key = tostring(network.network_id) --.. ":" .. tostring(network.wire_type)
+        local key = tostring(network.network_id) .. ":" .. tostring(network.wire_type)
         if not result[key] then
           result[key] = {
             id = network.network_id,
@@ -617,7 +617,7 @@ local function refresh(player)
     if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
     return
   end
-  local network = circuit_networks(source)[tostring(state.network_id)]
+  local network = circuit_networks(source)[tostring(tostring(state.network_id) .. ":" .. tostring(state.wire_type))]
 
   if not network then player.print("no network");return end
 
