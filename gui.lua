@@ -60,7 +60,7 @@ function Button_Signal(signal)
         sprite = type .. "/" .. signal_name,
         number = signal.count,
         style = network_styles[i],
-        tooltip = prototypes[prototype_name][signal_name].localised_name,
+        tooltip = signal.count,-- prototypes[prototype_name][signal_name].localised_name,
         quality = signal.signal.quality,
     }
 

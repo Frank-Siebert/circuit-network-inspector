@@ -586,8 +586,9 @@ local function refresh(player)
   local body = frame.body
   clear_children(body)
 
-  local left = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
-  left.style.width = 260
+  --local left = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
+  --left.style.width = 260
+  local left = body.add{type="table", column_count = 10 }
 
   local right_scroll_pane = body.add{
     type = "scroll-pane",
@@ -603,13 +604,6 @@ local function refresh(player)
     name = "right_content",
     direction = "vertical"
   }
-
-  local all = left.add{
-    type="button",
-    caption = "∀  All signals",
-    tags = {cni_action="filter_all"}
-  }
-  all.style.horizontally_stretchable = true
 
   local signal_button = left.add{
     type = "choose-elem-button",
