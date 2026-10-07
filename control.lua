@@ -201,6 +201,30 @@ local function behavior_accesses(entity, behavior, wire_type)
 --      add_set("result", p.output_signal, behavior.signals_last_tick) -- TODO. add_set for single signal only, might be many?
     end
 
+  elseif t == defines.control_behavior.type.decider_combinator then
+    local p = behavior.parameters
+    if p then
+      if input_ok then
+        for i, c in pairs(p.conditions or {}) do
+          game.print("condition " .. serpent.block(c))
+          add_access(((i > 1 and c.compare_type) or "first condition")
+                  .. (signal_to_rich_text(c.first_signal))
+                  .. c.comparator
+                  .. (signal_to_rich_text(c.second_signal) or c.constant), nil,
+                    {
+            description = "comparation",
+            direct_access = { c.first_signal, c.second_signal},
+            matches = function (signal) return (same_signal(signal, c.first_signal)) or (c.second_signal and same_signal(c.second_signal,signal)) end
+                          })
+
+        end
+      end
+      if output_ok then
+        for _, o in pairs(p.outputs      or {}) do add_set("output ", o.signal,(o.copy_count_from_input and "input") or o.constant or "1") end -- TODO it ain't 42
+        for _, o in pairs(p.else_outputs or {}) do add_set("else "  , o.signal,(o.copy_count_from_input and "input") or o.constant or "1") end -- "defaults to 1"
+      end
+    end
+
   elseif t == defines.control_behavior.type.container
       or t == defines.control_behavior.type.logistic_container
       or t == defines.control_behavior.type.proxy_container then
