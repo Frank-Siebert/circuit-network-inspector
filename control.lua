@@ -36,7 +36,7 @@ end
 
 local function signal_key(signal)
   if not signal then return nil end
-  return (signal.type or "item") .. ":" .. tostring(signal.name)
+  return (signal.type or "item") .. ":" .. tostring(signal.name) .. " q=" .. tostring(signal.quality or "normal")
 end
 
 local function same_signal(a, b)
@@ -105,9 +105,10 @@ local function signal_to_rich_text(signalID)
     elseif type == "virtual" then type = "virtual-signal" end
 
     return string.format(
-        "[%s=%s]",
+        "[%s=%s,quality=%s]",
         type,
-        signalID.name
+        signalID.name,
+        signalID.quality
     )
 end
 
