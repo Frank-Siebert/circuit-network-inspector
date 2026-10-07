@@ -630,7 +630,7 @@ local function refresh(player)
     local read = false
     local reads = {}
     for _,a in ipairs(entity_roles(entity, network)) do
-      if a.currentwrite == nil and (selected == nil or a.dynamic_potentials.matches(selected)) then read = true; table.insert(reads, a) break; end
+      if a.currentwrite == nil and (selected == nil or a.dynamic_potentials.matches(selected)) then read = true; table.insert(reads, a) end
     end
     if read then add_entity_button(right, entity, nil, "reader", selected, reads) end
   end
