@@ -180,7 +180,6 @@ local function behavior_accesses(entity, behavior, wire_type)
   local has_circuit_enable_disable, value = pcall(function() return behavior["circuit_enable_disable"] end)
   if has_circuit_enable_disable and
      input_ok and behavior.circuit_enable_disable and behavior.circuit_condition then
-      game.print("we have an add_access")
       add_comparison("Enable if ", behavior.circuit_condition)
   end
 
@@ -207,7 +206,6 @@ local function behavior_accesses(entity, behavior, wire_type)
     if p then
       if input_ok then
         for i, c in pairs(p.conditions or {}) do
-          game.print("condition " .. serpent.block(c))
           add_access(((i > 1 and c.compare_type) or "first condition")
                   .. (signal_to_rich_text(c.first_signal))
                   .. c.comparator
@@ -642,7 +640,6 @@ local function refresh(player)
 end
 
 local function open_inspector(player, source, network)
-  player.print("open_inspector Network: " .. network.id)
   storage.cni = storage.cni or {}
   storage.cni[player.index] = {
     source_unit_number = source.unit_number,
@@ -774,20 +771,11 @@ end
 
 -- Add a small button next to Factorio's additional-entity-info GUI.
 local function add_relative_button(player, entity)
-  player.print("adding 1")
   destroy_relative(player)
   if not entity or not entity.valid then return end
-  for key, child in pairs(circuit_networks(entity)) do
-  	--player.print("  " .. child.network_id .. " / " ..  " ;key=" .. key)
-	--player.print("  full child!" .. child) -- crashes
-	player.print("  full child?" .. serpent.block(child))
-  end  
 
   local networks = circuit_networks(entity)
   if empty(networks) then return end
-  --player.print("gui type = " .. tostring(entity)) -- daher kommt der Kreis. So als würde man pingen!
-  player.print("entity = " .. entity.type .. " / " .. entity.name)
-  --player.print("entity " .. serpent.block(entity))
   player.gui.relative.add{
     type = "frame",
     name = BUTTON,
@@ -824,14 +812,6 @@ local function add_relative_button(player, entity)
       unit_number = entity.unit_number
     }
   }
-  local children = player.gui.relative.children
-  player.print("relative children: " .. #children)
-
-  for key, child in pairs(children) do
-  	player.print("  " .. child.name .. " / " .. child.type .. " ;key=" .. key)
-	--player.print("  full child!" .. child) -- crashes
-	player.print("  full child?" .. serpent.block(child))
-  end  
 end
 
 script.on_event(defines.events.on_gui_opened, function(event)
@@ -870,13 +850,11 @@ script.on_event(defines.events.on_gui_click, function(event)
   if not action then return end
 
   if action == "open_from_entity" then
-    player.print("open_from_entity, (unit_number=" .. element.tags.unit_number .. ", network id=" .. element.tags.network.id)
     local network = element.tags.network
     --local entity = game.get_entity_by_unit_number(element.tags.unit_number)
     local entity = unit_number_to_entity[element.tags.unit_number]
 	if not entity then player.print("NOT entity") end
     if not entity then return end
-    player.print("open_from_entity 2" .. tostring(entity) .. " network: " .. tostring(network))
     if network then
       open_inspector(player, entity, network)
     else
