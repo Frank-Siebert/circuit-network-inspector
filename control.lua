@@ -617,18 +617,7 @@ local function refresh(player)
     if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
     return
   end
-  local network -- source.get_circuit_network(state.network_id)
-  local connectors = source.get_wire_connectors(false)
-  for id, connector in pairs(connectors) do
-    if connector.valid
-        and connector.network_id == state.network_id
-        and connector.wire_type == state.wire_type then
-      network = source.get_circuit_network(id)
-      if network then break end
-    end
-  end
-  local foo = circuit_networks(source)
-  network = foo[tostring(state.network_id)]
+  local network = circuit_networks(source)[tostring(state.network_id)]
 
   if not network then player.print("no network");return end
 
