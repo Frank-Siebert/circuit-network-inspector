@@ -571,6 +571,11 @@ local function add_entity_button(parent, entity, network, role, selected, access
   end
 end
 
+local function refresh_options(options,enabled)
+  options.cni_literal_matching.enabled = enabled
+  options.cni_current_writes.enabled = enabled
+end
+
 local function refresh_signals(player, network)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
@@ -725,6 +730,7 @@ local function open_inspector(player, source, network)
   }
   options.add{name="cni_literal_matching", type="checkbox", caption="literal matching caption", tooltip="literal matching tooltip", state=state.options.literal_matching}
   options.add{name="cni_current_writes", type="checkbox", caption="current writes caption", tooltip="current writes tooltip", state=state.options.current_writes}
+  refresh_options(options, state.options.signal ~= nil)
 
   local body = frame.add{type="flow", name="body", direction="horizontal"}
   body.style.horizontally_stretchable = true
@@ -923,6 +929,7 @@ script.on_event(defines.events.on_gui_elem_changed, function(event)
     else
         game.print("No signal selected")
     end
+    refresh_options(event.element.parent.parent, signal ~= nil)
     refresh_accesses(game.get_player(event.player_index))
 
   elseif event.element.name == "cni_literal_matching" then
