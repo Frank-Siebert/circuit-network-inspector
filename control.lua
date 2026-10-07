@@ -598,9 +598,13 @@ local function is_access(a, options, filter_writes)
   if a_is_write ~= filter_writes then return false end
   if options.signal == nil then return true
   else
-    game.print("advanced is_access "..tostring(a_is_write)..", option.cw ".. tostring(options.current_writes) .. ", signal_key" .. signal_key(options.signal))
-    -- TODO check options.literal_matching
     if a_is_write and options.current_writes then return a.currentwrite[signal_key(options.signal)] end
+    if not options.literal_matching and (
+       a.dynamic_potentials.matches({type = "virtual", name="signal-all"}) or
+       a.dynamic_potentials.matches({type = "virtual", name="signal-each"}) or
+       a.dynamic_potentials.matches({type = "virtual", name="signal-any"}))
+    then return true end
+
     return a.dynamic_potentials.matches(options.signal)
   end
 end

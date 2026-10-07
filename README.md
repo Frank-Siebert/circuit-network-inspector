@@ -31,16 +31,13 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 
 ### conceptual TODOs
 * how to handle mods with new entities or new control behavior?
-* top gui thing for  search_current_write vs search_potential_writes. And count forall/... as match.
-** filter modes for writes: current writes, potential write with wildcard (each), potential writes literally
-** filter modes for reads: reads literally, with wildcard (all, each, any). all and any access depend on current value here!
 
 ### normal work
 * handle combinators with their 2 connection points better
 * some entities might be missing, e.g. labs
 * the entity list should contain the actual accesses, like "enable if [V] < 150", more of it. do for everything or let AI do it.
 * improve gui for list of entities
-* actually show the current signals
+* actually show the current signals in access list (done for left panel)
 * click into list of current values for filter?
 
 ### for publishing
