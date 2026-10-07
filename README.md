@@ -30,10 +30,8 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 ## TODOs:
 
 ### conceptual TODOs
-* refresh logic must be changed thoroughly
-** network selection and storage in `storage` table.
-** top gui thing for  search_current_write vs search_potential_writes. And count forall/... as match.
 * how to handle mods with new entities or new control behavior?
+* top gui thing for  search_current_write vs search_potential_writes. And count forall/... as match.
 
 ### normal work
 * handle combinators with their 2 connection points better

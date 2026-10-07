@@ -564,6 +564,8 @@ local function refresh_signals(player, network)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
 
+  if not network then network = network_from_state(state) end
+
   local left  = player.gui.screen[GUI].body.left
 
   local signals = network.network.signals or {}
@@ -579,6 +581,7 @@ end
 local function refresh_accesses(player, network)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
+  if not network then network = network_from_state(state) end
   local source = unit_number_to_entity[ state.source_unit_number]
   
   local selected = state.signal
@@ -910,17 +913,17 @@ script.on_event(defines.events.on_gui_elem_changed, function(event)
     else
         game.print("No signal selected")
     end
-    refresh(game.get_player(event.player_index))
+    refresh_accesses(game.get_player(event.player_index))
   end
 end)
 
 script.on_event(defines.events.on_tick, function(event)
   -- Keep the signal values reasonably live without rebuilding every tick.
-  if event.tick % 600 ~= 0 or not storage.cni then return end
+  if event.tick % 15 ~= 0 or not storage.cni then return end
   for player_index, state in pairs(storage.cni) do
     local player = game.get_player(player_index)
     if player and player.gui.screen[GUI] and player.gui.screen[GUI].valid then
-      refresh(player)
+      refresh_signals(player)
     end
   end
 end)
