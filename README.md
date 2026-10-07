@@ -31,6 +31,8 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 
 ### conceptual TODOs
 * refresh logic must be changed thoroughly
+** network selection and storage in `storage` table.
+** top gui thing for  search_current_write vs search_potential_writes. And count forall/... as match.
 * how to handle mods with new entities or new control behavior?
 
 ### normal work
@@ -38,7 +40,6 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 * some entities might be missing, e.g. labs
 * the entity list should contain the actual accesses, like "enable if [V] < 150", more of it. do for everything or let AI do it.
 * improve gui for list of entities:
-** better layout
 ** combinators (things with description) should show first line of description
 * actually show the current signals
 

@@ -698,7 +698,23 @@ local function open_inspector(player, source, network)
   frame.style.width = 800
   frame.style.height = 600
 
-  local options = frame.add{type="flow", name="options", direction="vertical"}
+  local state = storage.cni and storage.cni[player.index]
+  if not state then return end
+
+  local options = frame.add{type="frame", name="options", direction="vertical" }
+  options.style.horizontally_stretchable = true
+
+  local signal_filter_option = options.add{ name = "signal_filter_option", type = "flow", direction="horizontal" }
+  signal_filter_option.style.vertical_align = "center"
+  signal_filter_option.add{type = "label", caption="only show access to signal: ",
+                           tooltip="filters the list of accessing entities to those using the selected signal. Empty for no filter."}
+
+  signal_filter_option.add{
+    type = "choose-elem-button",
+    name = "cni_signal_filter",
+    elem_type = "signal",
+    signal = state.signal
+  }
 
   local body = frame.add{type="flow", name="body", direction="horizontal"}
   body.style.horizontally_stretchable = true
@@ -723,16 +739,6 @@ local function open_inspector(player, source, network)
     type = "flow",
     name = "accesses",
     direction = "vertical"
-  }
-
-  local state = storage.cni and storage.cni[player.index]
-  if not state then return end
-
-  options.add{
-    type = "choose-elem-button",
-    name = "cni_signal_filter",
-    elem_type = "signal",
-    signal = state.signal
   }
 
   refresh(player)
