@@ -556,40 +556,7 @@ local function add_entity_button(parent, entity, network, role, selected, access
   b.tooltip = entity.name
 end
 
-local refresh_signals, refresh_accesses
-
-local function refresh(player)
-  local state = storage.cni and storage.cni[player.index]
-  if not state then return end
-
-  local source = unit_number_to_entity[ state.source_unit_number]
-  if not source or not source.valid then
-    if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
-    return
-  end
-  local network -- source.get_circuit_network(state.network_id)
-  local connectors = source.get_wire_connectors(false)
-  for id, connector in pairs(connectors) do
-    if connector.valid
-        and connector.network_id == state.network_id
-        and connector.wire_type == state.wire_type then
-      network = source.get_circuit_network(id)
-      if network then break end
-    end
-  end
-  local foo = circuit_networks(source)
-  network = foo[tostring(state.network_id)]
-
-  if not network then player.print("no network");return end
-
-  local frame = player.gui.screen[GUI]
-  if not frame then player.print("no frame");return end
-
-  refresh_signals(player, network)
-  refresh_accesses(player, network)
-end
-
-function refresh_signals(player, network)
+local function refresh_signals(player, network)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
 
@@ -605,7 +572,7 @@ function refresh_signals(player, network)
   end
 end
 
-function refresh_accesses(player, network)
+local function refresh_accesses(player, network)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
   local source = unit_number_to_entity[ state.source_unit_number]
@@ -641,6 +608,37 @@ function refresh_accesses(player, network)
   if false and (#writers == 0 and #readers == 0) then -- TODO fix.
     right.add{type="label", caption="No matching entities."}
   end
+end
+
+local function refresh(player)
+  local state = storage.cni and storage.cni[player.index]
+  if not state then return end
+
+  local source = unit_number_to_entity[ state.source_unit_number]
+  if not source or not source.valid then
+    if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
+    return
+  end
+  local network -- source.get_circuit_network(state.network_id)
+  local connectors = source.get_wire_connectors(false)
+  for id, connector in pairs(connectors) do
+    if connector.valid
+        and connector.network_id == state.network_id
+        and connector.wire_type == state.wire_type then
+      network = source.get_circuit_network(id)
+      if network then break end
+    end
+  end
+  local foo = circuit_networks(source)
+  network = foo[tostring(state.network_id)]
+
+  if not network then player.print("no network");return end
+
+  local frame = player.gui.screen[GUI]
+  if not frame then player.print("no frame");return end
+
+  refresh_signals(player, network)
+  refresh_accesses(player, network)
 end
 
 local function open_inspector(player, source, network)
