@@ -607,7 +607,7 @@ local function refresh_accesses(player, network)
   local right = player.gui.screen[GUI].body.right_scroll_pane.accesses
   clear_children(right)
 
-  right.add{type="label", caption="WRITERS"}
+  right.add{type="label", caption="WRITERS", tooltip="entities writing to the network (reading from entity)"}
   for _, entity in pairs(entities) do
     local write = false
     local writes = {}
@@ -618,7 +618,7 @@ local function refresh_accesses(player, network)
   end
 
   right.add{type="line"}
-  right.add{type="label", caption="READERS"}
+  right.add{type="label", caption="READERS", tooltip="entities reading from the network (writing toentity)"}
   for _, entity in pairs(entities) do
     local read = false
     local reads = {}
