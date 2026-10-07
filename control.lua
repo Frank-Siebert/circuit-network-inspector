@@ -617,11 +617,10 @@ local function refresh(player)
     signal = state.signal
 }
 
-  local signals = network.signals or {}
+  local signals = network.network.signals or {}
   --table.sort(signals, function(a,b)
   --  return signal_key(a.signal) < signal_key(b.signal)
   --end)
-
   for _, s in pairs(signals) do
     local button = left.add{
       type="button",
