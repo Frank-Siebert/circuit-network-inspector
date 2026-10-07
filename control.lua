@@ -628,7 +628,8 @@ local function refresh(player)
       tags = {
         cni_action="filter_signal",
         signal_type=s.signal.type or "item",
-        signal_name=s.signal.name
+        signal_name=s.signal.name,
+        signal_quality=s.signal.quality
       }
     }
     button.style.horizontally_stretchable = true
@@ -885,7 +886,8 @@ script.on_event(defines.events.on_gui_click, function(event)
     if state then
       state.signal = {
         type = element.tags.signal_type,
-        name = element.tags.signal_name
+        name = element.tags.signal_name,
+        quality = element.tags.signal_quality
       }
       refresh(player)
     end
