@@ -197,8 +197,10 @@ local function behavior_accesses(entity, behavior, wire_type)
                  (signal_to_rich_text(p.second_signal) or p.second_constant), nil,
                 {
       description = "arithmetic operation",
-      direct_access = { p.first_signal, p.second_signal},
-      matches = function (signal) return (p.first_signal and same_signal(signal, p.first_signal)) or (p.second_signal and same_signal(p.second_signal,signal)) end
+      direct_access = { network_selected(p.first_signal_networks , wire_type) and p.first_signal,
+                        network_selected(p.second_signal_networks, wire_type) and p.second_signal},
+      matches = function (signal) return (p.first_signal and same_signal(signal, p.first_signal) and network_selected(p.first_signal_networks , wire_type))
+                                     or (p.second_signal and same_signal(p.second_signal,signal) and network_selected(p.second_signal_networks, wire_type)) end
                       })
 
       -- if output_ok then add_write(p.output_signal) end
@@ -217,8 +219,10 @@ local function behavior_accesses(entity, behavior, wire_type)
                   .. (signal_to_rich_text(c.second_signal) or c.constant), nil,
                     {
             description = "comparation",
-            direct_access = { c.first_signal, c.second_signal},
-            matches = function (signal) return (same_signal(signal, c.first_signal)) or (c.second_signal and same_signal(c.second_signal,signal)) end
+            direct_access = { network_selected(c.first_signal_networks , wire_type) and c.first_signal,
+                              network_selected(c.second_signal_networks, wire_type) and c.second_signal},
+            matches = function (signal) return (same_signal(signal, c.first_signal) and network_selected(c.first_signal_networks , wire_type))
+                        or (c.second_signal and same_signal(c.second_signal,signal) and network_selected(c.second_signal_networks, wire_type)) end
                           })
 
         end
@@ -474,9 +478,6 @@ local function entity_roles(entity, network)
   local behavior = entity.get_control_behavior()
 
   if not behavior then return readers, writers end
-
-  local input_ok = network_selected(behavior.input_networks, network.wire_type)
-  local output_ok = network_selected(behavior.output_networks, network.wire_type)
 
   local accesses = behavior_accesses(entity, behavior, network.wire_type)
   return accesses

@@ -33,7 +33,7 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 * how to handle mods with new entities or new control behavior?
 
 ### normal work
-* handle combinators with their 2 connection points better
+* if a decider output (write) says "input count", that also qualifies as read!
 * some entities might be missing, e.g. labs
 * the entity list should contain the actual accesses, like "enable if [V] < 150", more of it. do for everything or let AI do it.
 * improve gui for list of entities
