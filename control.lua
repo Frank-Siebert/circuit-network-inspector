@@ -223,8 +223,8 @@ local function behavior_accesses(entity, behavior, wire_type)
       description = "arithmetic operation",
       direct_access = { network_selected(p.first_signal_networks , wire_type) and p.first_signal,
                         network_selected(p.second_signal_networks, wire_type) and p.second_signal},
-      matches = function (self, signal) return (p.first_signal and same_signal(signal, p.first_signal) and network_selected(p.first_signal_networks , wire_type))
-                                     or (p.second_signal and same_signal(p.second_signal,signal) and network_selected(p.second_signal_networks, wire_type)) end
+      matches = function (self, s) return (p.first_signal  and same_signal(s, p.first_signal ) and network_selected(p.first_signal_networks , wire_type))
+                                       or (p.second_signal and same_signal(s, p.second_signal) and network_selected(p.second_signal_networks, wire_type)) end
                       })
 
       -- if output_ok then add_write(p.output_signal) end
@@ -245,8 +245,8 @@ local function behavior_accesses(entity, behavior, wire_type)
             description = "comparation",
             direct_access = { network_selected(c.first_signal_networks , wire_type) and c.first_signal,
                               network_selected(c.second_signal_networks, wire_type) and c.second_signal},
-            matches = function (self, signal) return (same_signal(signal, c.first_signal) and network_selected(c.first_signal_networks , wire_type))
-                        or (c.second_signal and same_signal(c.second_signal,signal) and network_selected(c.second_signal_networks, wire_type)) end
+            matches = function (self, s) return (same_signal(s, c.first_signal ) and network_selected(c.first_signal_networks , wire_type))
+                         or (c.second_signal and same_signal(s, c.second_signal) and network_selected(c.second_signal_networks, wire_type)) end
                           })
 
         end
