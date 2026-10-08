@@ -66,16 +66,6 @@ local function signal_text(signal)
   return prefix .. " " .. signal.name
 end
 
-local function add_signal(refs, signal)
-  if signal then refs[signal_key(signal)] = true end
-end
-
-local function add_condition_signals(refs, condition)
-  if not condition then return end
-  add_signal(refs, condition.first_signal)
-  add_signal(refs, condition.second_signal)
-end
-
 local function network_selected(selection, wire_type)
   if not selection then return true end
   if wire_type == defines.wire_type.red then
@@ -85,22 +75,6 @@ local function network_selected(selection, wire_type)
     return selection.green ~= false
   end
   return true
-end
-
---- Finds a LuaCircuitNetwork by ID when the surface is unknown
--- @param network_id number
--- @return LuaCircuitNetwork|nil
-local function find_circuit_network_anywhere(network_id)
-    for _, surface in pairs(game.surfaces) do
-        local manager = surface.circuit_network_manager
-        if manager then
-            local network = manager.get_network(network_id)
-            if network and network.valid then
-                return network
-            end
-        end
-    end
-    return nil
 end
 
 local function signal_to_rich_text(signalID)
@@ -121,7 +95,7 @@ end
 
 --[[
 behavior_access = {
-  currentWriteContribution :: table from SignalID to value
+  currentWriteContribution :: array of signal as seen in https://lua-api.factorio.com/latest/classes/LuaCombinatorControlBehavior.html#signals_last_tick
   dynamicPotentials :: {
      description:: text,
      directAccess :: array SignalID?,
