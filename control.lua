@@ -594,6 +594,7 @@ local function refresh_signals(player, network)
   if not state then return end
 
   if not network then network = network_from_state(state) end
+  if not network then player.print("did you just load a game?"); return end
 
   local left  = player.gui.screen[GUI].body.left
 
