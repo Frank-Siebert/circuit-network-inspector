@@ -246,11 +246,16 @@ local function behavior_accesses(entity, behavior, wire_type)
       add_access("read contents " --[[ TODO items]], write_contrib,
         Signal_access:new_type_match("any item","item"))
     end
+    if output_ok and behavior.read_empty_slots then
+      add_set("read empty slots ",behavior.empty_slots_signal,"?")
+    end
     if t == defines.control_behavior.type.logistic_container then
-      if input_ok then
-        --add_read("__dynamic")
+      if input_ok and behavior.circuit_condition_enabled then
+        add_comparison("enable if ",behavior.circuit_condition)
       end
-      -- TODO set requests
+      if input_ok and behavior.set_requests then
+        add_access("set requests",nil,Signal_access:new_type_match("any item","item"))
+      end
     end
 
   elseif t == defines.control_behavior.type.single_fluid_box then
