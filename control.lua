@@ -178,8 +178,9 @@ local function behavior_accesses(entity, behavior, wire_type)
   end
 
   local function add_set(text, signal, value)
-    local write_contribution = { [signal_key(signal)] = value }
-      add_access(text .. signal_to_rich_text(signal) .. " = " .. (value or "(not set)"),
+    local write_contribution = {}
+    if signal then write_contribution[signal_key(signal)] = value end
+      add_access(text .. (signal_to_rich_text(signal) or "N/A") .. " = " .. (value or "(not set)"),
          write_contribution,
          Signal_access:new_single("set a value", signal))
   end
@@ -237,9 +238,9 @@ local function behavior_accesses(entity, behavior, wire_type)
       if input_ok then
         for i, c in pairs(p.conditions or {}) do
           add_access(((i > 1 and c.compare_type) or "first condition")
-                  .. (signal_to_rich_text(c.first_signal))
+                  .. (signal_to_rich_text(c.first_signal) or "N/A")
                   .. c.comparator
-                  .. (signal_to_rich_text(c.second_signal) or c.constant), nil,
+                  .. (signal_to_rich_text(c.second_signal) or c.constant or "N/A"), nil,
                     {
             description = "comparation",
             direct_access = { network_selected(c.first_signal_networks , wire_type) and c.first_signal,
@@ -251,8 +252,8 @@ local function behavior_accesses(entity, behavior, wire_type)
         end
       end
       if output_ok then
-        for _, o in pairs(p.outputs      or {}) do add_set("output ", o.signal,behavior.get_signal_last_tick(o.signal)) end
-        for _, o in pairs(p.else_outputs or {}) do add_set("else "  , o.signal,behavior.get_signal_last_tick(o.signal)) end
+        for _, o in pairs(p.outputs      or {}) do add_set("output ", o.signal,o.signal and behavior.get_signal_last_tick(o.signal) or "N/A") end
+        for _, o in pairs(p.else_outputs or {}) do add_set("else "  , o.signal,o.signal and behavior.get_signal_last_tick(o.signal) or "N/A") end
       end
     end
 
@@ -283,7 +284,8 @@ local function behavior_accesses(entity, behavior, wire_type)
       add_set("set temperature ", behavior.temperature_signal, entity.get_fluid(1).temperature)
     end
     if (output_ok and behavior.circuit_exclusive_mode_of_operation) then -- TODO operation is an enum
-      add_access("read fluid, currently " .. string.format("[fluid=%s]",(entity.get_fluid(1).name)),{},
+    -- TODO without fluid, this crashes
+      add_access("read fluid, currently " .. string.format("%s [fluid=%s]",math.ceil(entity.get_fluid(1).amount),(entity.get_fluid(1).name)),{[signal_key{ type="fluid", name=entity.get_fluid(1).name}] = entity.get_fluid(1).amount},
       Signal_access:new_type_match("any fluid","fluid"))
     end
   elseif t == defines.control_behavior.type.inserter then
