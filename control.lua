@@ -741,8 +741,8 @@ local function open_inspector(player, source, network)
     elem_type = "signal",
     signal = state.options.signal
   }
-  options.add{name="cni_literal_matching", type="checkbox", caption="literal matching caption", tooltip="literal matching tooltip", state=state.options.literal_matching}
-  options.add{name="cni_current_writes", type="checkbox", caption="current writes caption", tooltip="current writes tooltip", state=state.options.current_writes}
+  options.add{name="cni_literal_matching", type="checkbox", caption="literal signal matching", tooltip="Require an exact signal match. When disabled, dynamic signals such as [virtual-signal=signal-each] match any selected signal.", state=state.options.literal_matching}
+  options.add{name="cni_current_writes", type="checkbox", caption="use current writes, not potential", tooltip="Match only if there is a signal output now, instead of could be output.", state=state.options.current_writes}
   refresh_options(options, state.options.signal ~= nil)
 
   local body = frame.add{type="flow", name="body", direction="horizontal"}
