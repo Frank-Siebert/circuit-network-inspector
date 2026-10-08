@@ -1085,16 +1085,28 @@ local function behavior_accesses(entity, behavior, wire_type)
 
   elseif t == defines.control_behavior.type.rocket_silo then
 
-    if output_ok and behavior.read_launched then
-      add_set(
-        "rocket launched ",
-        behavior.launched_signal,
-        "?"
-      )
-    end
-
     if output_ok then
-      add_type_read("read rocket silo contents ", "item")
+      if behavior.read_mode == defines.control_behavior.rocket_silo.read_mode.logistic_inventory then
+        add_inventory_contents(
+          "read logistic inventory ",
+          entity.get_inventory(defines.inventory.rocket_silo_rocket)
+        )
+      elseif behavior.read_mode == defines.control_behavior.rocket_silo.read_mode.orbital_requests then
+        add_access(
+          "read orbital requests ",
+          {},
+          Signal_access:new_type_match("any item", "item")
+        )
+      end
+
+      if output_ok and behavior.read_launched then
+        add_set(
+          "rocket launched ",
+          behavior.launched_signal,
+          "?"
+        )
+      end
+
     end
 
 
@@ -1297,12 +1309,17 @@ local function behavior_accesses(entity, behavior, wire_type)
   -- DISPLAY PANEL
   --------------------------------------------------------------------------
 
-  elseif t == defines.control_behavior.type.display_panel then
-
-    -- Display panels currently don't expose a circuit signal behavior
-    -- beyond the generic control behavior.
-
-
+elseif t == defines.control_behavior.type.display_panel then
+    if input_ok and behavior.records then
+      for _, record in pairs(behavior.records) do
+        if record.condition then
+          add_comparison(
+            "message " .. (signal_to_rich_text(record.icon) or "N/A") .. " condition: ",
+            record.condition
+          )
+        end
+      end
+    end
   --------------------------------------------------------------------------
   -- PROGRAMMABLE SPEAKER
   --------------------------------------------------------------------------
