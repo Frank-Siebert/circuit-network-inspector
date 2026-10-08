@@ -12,8 +12,8 @@ Entity_type_to_gui_type = {
     ["fast-inserter"]            = defines.relative_gui_type.inserter_gui,
 
     -- Lagerung, Logistik & Inventare
-    ["container"]                = defines.relative_gui_type.item_with_inventory_gui,
-    ["logistic-container"]       = defines.relative_gui_type.item_with_inventory_gui,
+    ["container"]                = defines.relative_gui_type.container_gui,
+    ["logistic-container"]       = defines.relative_gui_type.container_gui,
     ["car"]                      = defines.relative_gui_type.item_with_inventory_gui,
     ["cargo-wagon"]              = defines.relative_gui_type.item_with_inventory_gui,
     ["fluid-wagon"]              = defines.relative_gui_type.item_with_inventory_gui,
