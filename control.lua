@@ -179,7 +179,7 @@ local function behavior_accesses(entity, behavior, wire_type)
 
   local function add_set(text, signal, value)
     local write_contribution = {}
-    if signal then write_contribution[signal_key(signal)] = value end
+    if signal then table.insert(write_contribution, {signal=signal, count=value}) end
       add_access(text .. (signal_to_rich_text(signal) or "N/A") .. " = " .. (value or "(not set)"),
          write_contribution,
          Signal_access:new_single("set a value", signal))
@@ -285,7 +285,7 @@ local function behavior_accesses(entity, behavior, wire_type)
     end
     if (output_ok and behavior.circuit_exclusive_mode_of_operation) then -- TODO operation is an enum
     -- TODO without fluid, this crashes
-      add_access("read fluid, currently " .. string.format("%s [fluid=%s]",math.ceil(entity.get_fluid(1).amount),(entity.get_fluid(1).name)),{[signal_key{ type="fluid", name=entity.get_fluid(1).name}] = entity.get_fluid(1).amount},
+      add_access("read fluid, currently " .. string.format("%s [fluid=%s]",math.ceil(entity.get_fluid(1).amount),(entity.get_fluid(1).name)),{{signal = { type="fluid", name=entity.get_fluid(1).name}, count = entity.get_fluid(1).amount}},
       Signal_access:new_type_match("any fluid","fluid"))
     end
   elseif t == defines.control_behavior.type.inserter then
@@ -299,7 +299,7 @@ local function behavior_accesses(entity, behavior, wire_type)
       local currentwrite = {}
       if hand and hand.valid_for_read then
         --add_write({type="item", name=hand.name})
-        table.insert(currentwrite,{{type="item", name=hand.name},hand.count})
+        table.insert(currentwrite,{signal={type="item", name=hand.name},count=hand.count})
       end
       add_access("read hand contents ",currentwrite, Signal_access:new_type_match("any item","item"))
     end
@@ -612,7 +612,12 @@ local function is_access(a, options, filter_writes)
   if a_is_write ~= filter_writes then return false end
   if options.signal == nil then return true
   else
-    if a_is_write and options.current_writes then return a.currentwrite[signal_key(options.signal)] end
+    if a_is_write and options.current_writes then
+      for _, s in ipairs(a.currentwrite) do
+        if same_signal(options.signal,s.signal) then return true end
+      end
+      return false
+    end
     if not options.literal_matching and (
        a.dynamic_potentials:matches({type = "virtual", name="signal-all"}) or
        a.dynamic_potentials:matches({type = "virtual", name="signal-each"}) or
