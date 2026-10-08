@@ -159,6 +159,12 @@ function Signal_access:new_single(desc, signal)
   return Signal_access:new(o)
 end
 
+function Signal_access:new_type_match(desc, type)
+  return Signal_access:new{description = desc, type = type,
+    matches = function (self, s) return (s.type or "item") == self.type end
+  }
+end
+
 local function behavior_accesses(entity, behavior, wire_type)
   local result = {}
 
@@ -179,13 +185,7 @@ local function behavior_accesses(entity, behavior, wire_type)
   end
 
   local function add_simple_read(text, signal)
-    add_access(text, nil,
-        {
-          description = "read a value",
-          direct_access = { signal },
-          matches = function (self, s) return same_signal(s, signal) end
-        })
-
+    add_access(text, nil, Signal_access:new_single("read a value", signal))
   end
 
   local function add_comparison(text, circuit_condition)
@@ -193,11 +193,11 @@ local function behavior_accesses(entity, behavior, wire_type)
                               .. circuit_condition.comparator
                               .. (signal_to_rich_text(circuit_condition.second_signal) or circuit_condition.constant),
                               nil,
-                      {
-      description = "control comparison",
-      direct_access = {circuit_condition.first_signal, circuit_condition.second_signal},
-      matches = function (self, signal) return same_signal(signal, circuit_condition.first_signal) or (circuit_condition.second_signal and same_signal(circuit_condition.second_signal,signal)) end
-                      })
+                      Signal_access:new{
+                        description = "control comparison",
+                        direct_access = {circuit_condition.first_signal, circuit_condition.second_signal}
+                      }
+      )
   end
 
   if not behavior then return result end
@@ -268,11 +268,8 @@ local function behavior_accesses(entity, behavior, wire_type)
           table.insert(write_contrib,{signalID = {type="item", name=item.name}, count = item.count})
         end
       end
-      add_access("read contents " --[[ TODO items]], write_contrib, {
-        description ="any item",
-        direct_access = nil,
-        matches = function (self, signal) return not signal.type or signal.type == "item" end
-      })
+      add_access("read contents " --[[ TODO items]], write_contrib,
+        Signal_access:new_type_match("any item","item"))
     end
     if t == defines.control_behavior.type.logistic_container then
       if input_ok then
@@ -287,11 +284,7 @@ local function behavior_accesses(entity, behavior, wire_type)
     end
     if (output_ok and behavior.circuit_exclusive_mode_of_operation) then -- TODO operation is an enum
       add_access("read fluid, currently " .. string.format("[fluid=%s]",(entity.get_fluid(1).name)),{},
-    {
-      description = "any fluid",
-      direct_access = {  }, -- TODO set to currently read
-      matches = function (self, signal) return signal.type == "fluid" end
-    })
+      Signal_access:new_type_match("any fluid","fluid"))
     end
   elseif t == defines.control_behavior.type.inserter then
     if input_ok and behavior.circuit_set_stack_size then
@@ -306,12 +299,7 @@ local function behavior_accesses(entity, behavior, wire_type)
         --add_write({type="item", name=hand.name})
         table.insert(currentwrite,{{type="item", name=hand.name},hand.count})
       end
-      add_access("read hand contents ",currentwrite,
-    {
-      description = "any item",
-      direct_access = nil,
-      matches = function (self, signal) return not signal.type or signal.type == "item" end
-    })
+      add_access("read hand contents ",currentwrite, Signal_access:new_type_match("any item","item"))
     end
 
 
