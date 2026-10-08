@@ -144,146 +144,1237 @@ local function behavior_accesses(entity, behavior, wire_type)
 
   local function add_access(text, currentwrite, potentials)
     table.insert(result,
-  {
-    text = text,
-    currentwrite = currentwrite, -- nil: it is a read. might be empty list or more for writes
-    dynamic_potentials = potentials,
-  })
+    {
+      text = text,
+      currentwrite = currentwrite, -- nil: read, {} or more: write
+      dynamic_potentials = potentials,
+    })
   end
 
   local function add_set(text, signal, value)
     local write_contribution = {}
-    if signal then table.insert(write_contribution, {signal=signal, count=value}) end
-      add_access(text .. (signal_to_rich_text(signal) or "N/A") .. " = " .. (value or "(not set)"),
-         write_contribution,
-         Signal_access:new_single("set a value", signal))
+    if signal then
+      table.insert(write_contribution, {
+        signal = signal,
+        count = value
+      })
+    end
+
+    add_access(
+      text .. (signal_to_rich_text(signal) or "N/A")
+        .. " = " .. (value or "(not set)"),
+      write_contribution,
+      Signal_access:new_single("set a value", signal)
+    )
   end
 
   local function add_simple_read(text, signal)
-    add_access(text, nil, Signal_access:new_single("read a value", signal))
+    add_access(
+      text,
+      nil,
+      Signal_access:new_single("read a value", signal)
+    )
+  end
+
+  local function add_type_read(text, type)
+    add_access(
+      text,
+      nil,
+      Signal_access:new_type_match("any " .. type, type)
+    )
   end
 
   local function add_comparison(text, circuit_condition)
-      add_access(text .. signal_to_rich_text(circuit_condition.first_signal)
-                              .. circuit_condition.comparator
-                              .. (signal_to_rich_text(circuit_condition.second_signal) or circuit_condition.constant),
-                              nil,
-                      Signal_access:new{
-                        description = "control comparison",
-                        direct_access = {circuit_condition.first_signal, circuit_condition.second_signal}
-                      }
-      )
+    if not circuit_condition then return end
+
+    add_access(
+      text
+        .. (signal_to_rich_text(circuit_condition.first_signal) or "N/A")
+        .. (circuit_condition.comparator or "<")
+        .. (signal_to_rich_text(circuit_condition.second_signal)
+            or circuit_condition.constant
+            or "N/A"),
+      nil,
+      Signal_access:new{
+        description = "comparison",
+        direct_access = {
+          circuit_condition.first_signal,
+          circuit_condition.second_signal
+        }
+      }
+    )
   end
 
-  if not behavior then return result end
+  -- Copy an array of signals_last_tick into the format used by
+  -- currentwrite.
+  local function current_signals(signals)
+    local result = {}
+
+    for _, s in pairs(signals or {}) do
+      table.insert(result, {
+        signal = {
+          type = s.signal.type,
+          name = s.signal.name
+        },
+        count = s.count
+      })
+    end
+
+    return result
+  end
+
+  -- For combinators: their actual output is directly exposed by
+  -- signals_last_tick.
+  local function add_combinator_output(text, signal)
+    local current = current_signals(behavior.signals_last_tick)
+
+    add_access(
+      text .. (signal_to_rich_text(signal) or "N/A"),
+      current,
+      Signal_access:new_single("output", signal)
+    )
+  end
+
+  -- Read an inventory as dynamically selected item signals.
+  local function add_inventory_contents(text, inventory)
+    local current = {}
+
+    if inventory then
+      for _, item in pairs(inventory.get_contents()) do
+        table.insert(current, {
+          signal = {
+            type = "item",
+            name = item.name
+          },
+          count = item.count
+        })
+      end
+    end
+
+    add_access(
+      text,
+      current,
+      Signal_access:new_type_match("any item", "item")
+    )
+  end
+
+  -- Read several inventories as one circuit output.
+  local function add_inventories(text, inventories)
+    local current = {}
+
+    for _, inventory in ipairs(inventories) do
+      if inventory then
+        for _, item in pairs(inventory.get_contents()) do
+          table.insert(current, {
+            signal = {
+              type = "item",
+              name = item.name
+            },
+            count = item.count
+          })
+        end
+      end
+    end
+
+    add_access(
+      text,
+      current,
+      Signal_access:new_type_match("any item", "item")
+    )
+  end
+
+  -- Add all signals currently emitted by a combinator.
+  local function add_combinator_all_outputs(text)
+    add_access(
+      text,
+      current_signals(behavior.signals_last_tick),
+      Signal_access:new_type_match("any signal", "virtual")
+    )
+  end
+
+  if not behavior then
+    return result
+  end
 
   local input_ok = network_selected(behavior.input_networks, wire_type)
   local output_ok = network_selected(behavior.output_networks, wire_type)
 
-  local has_circuit_enable_disable, value = pcall(function() return behavior["circuit_enable_disable"] end)
-  if has_circuit_enable_disable and
-     input_ok and behavior.circuit_enable_disable and behavior.circuit_condition then
-      add_comparison("Enable if ", behavior.circuit_condition)
+  -- All LuaGenericOnOffControlBehavior descendants can have this.
+  local has_circuit_enable_disable =
+    pcall(function() return behavior.circuit_enable_disable end)
+
+  if has_circuit_enable_disable
+      and input_ok
+      and behavior.circuit_enable_disable
+      and behavior.circuit_condition then
+
+    add_comparison("Enable if ", behavior.circuit_condition)
   end
 
   local t = behavior.type
-  if t == defines.control_behavior.type.arithmetic_combinator then
-    local p = behavior.parameters
-    if p then
-      add_access((signal_to_rich_text(p.first_signal) or p.first_constant)
-               .. p.operation ..
-                 (signal_to_rich_text(p.second_signal) or p.second_constant), nil,
-                {
-      description = "arithmetic operation",
-      direct_access = { network_selected(p.first_signal_networks , wire_type) and p.first_signal,
-                        network_selected(p.second_signal_networks, wire_type) and p.second_signal},
-      matches = function (self, s) return (p.first_signal  and same_signal(s, p.first_signal ) and network_selected(p.first_signal_networks , wire_type))
-                                       or (p.second_signal and same_signal(s, p.second_signal) and network_selected(p.second_signal_networks, wire_type)) end
-                      })
 
-      -- if output_ok then add_write(p.output_signal) end
-      add_set("result", p.output_signal, "behavior.signals_last_tick") -- TODO. add_set for single signal only, might be many?
---      add_set("result", p.output_signal, behavior.signals_last_tick) -- TODO. add_set for single signal only, might be many?
+  --------------------------------------------------------------------------
+  -- COMBINATORS
+  --------------------------------------------------------------------------
+
+  if t == defines.control_behavior.type.arithmetic_combinator then
+
+    local p = behavior.parameters
+
+    if p then
+      if input_ok then
+        add_access(
+          (signal_to_rich_text(p.first_signal) or p.first_constant)
+            .. p.operation
+            .. (signal_to_rich_text(p.second_signal) or p.second_constant),
+          nil,
+          Signal_access:new{
+            description = "arithmetic operation",
+            direct_access = {
+              network_selected(p.first_signal_networks, wire_type)
+                and p.first_signal,
+              network_selected(p.second_signal_networks, wire_type)
+                and p.second_signal
+            },
+            matches = function(self, s)
+              return
+                (p.first_signal
+                  and network_selected(p.first_signal_networks, wire_type)
+                  and same_signal(s, p.first_signal))
+                or
+                (p.second_signal
+                  and network_selected(p.second_signal_networks, wire_type)
+                  and same_signal(s, p.second_signal))
+            end
+          }
+        )
+      end
+
+      if output_ok then
+        add_combinator_output("result ", p.output_signal)
+      end
     end
 
+
   elseif t == defines.control_behavior.type.decider_combinator then
+
     local p = behavior.parameters
+
     if p then
       if input_ok then
         for i, c in pairs(p.conditions or {}) do
-          add_access(((i > 1 and c.compare_type) or "first condition")
-                  .. (signal_to_rich_text(c.first_signal) or "N/A")
-                  .. c.comparator
-                  .. (signal_to_rich_text(c.second_signal) or c.constant or "N/A"), nil,
-                    {
-            description = "comparation",
-            direct_access = { network_selected(c.first_signal_networks , wire_type) and c.first_signal,
-                              network_selected(c.second_signal_networks, wire_type) and c.second_signal},
-            matches = function (self, s) return (same_signal(s, c.first_signal ) and network_selected(c.first_signal_networks , wire_type))
-                         or (c.second_signal and same_signal(s, c.second_signal) and network_selected(c.second_signal_networks, wire_type)) end
-                          })
-
+          add_access(
+            ((i > 1 and c.compare_type) or "first condition")
+              .. (signal_to_rich_text(c.first_signal) or "N/A")
+              .. c.comparator
+              .. (signal_to_rich_text(c.second_signal)
+                  or c.constant
+                  or "N/A"),
+            nil,
+            Signal_access:new{
+              description = "comparison",
+              direct_access = {
+                network_selected(c.first_signal_networks, wire_type)
+                  and c.first_signal,
+                network_selected(c.second_signal_networks, wire_type)
+                  and c.second_signal
+              },
+              matches = function(self, s)
+                return
+                  (c.first_signal
+                    and network_selected(c.first_signal_networks, wire_type)
+                    and same_signal(s, c.first_signal))
+                  or
+                  (c.second_signal
+                    and network_selected(c.second_signal_networks, wire_type)
+                    and same_signal(s, c.second_signal))
+              end
+            }
+          )
         end
       end
+
       if output_ok then
-        for _, o in pairs(p.outputs      or {}) do add_set("output ", o.signal,o.signal and behavior.get_signal_last_tick(o.signal) or "N/A") end
-        for _, o in pairs(p.else_outputs or {}) do add_set("else "  , o.signal,o.signal and behavior.get_signal_last_tick(o.signal) or "N/A") end
+        for _, o in pairs(p.outputs or {}) do
+          add_combinator_output("output ", o.signal)
+        end
+
+        for _, o in pairs(p.else_outputs or {}) do
+          add_combinator_output("else ", o.signal)
+        end
       end
     end
+
+
+  elseif t == defines.control_behavior.type.selector_combinator then
+
+    local p = behavior.parameters
+
+    if p and input_ok then
+
+      local operation = p.operation or "select"
+
+      if operation == "select" then
+
+        if p.index_signal then
+          add_simple_read("index signal ", p.index_signal)
+        end
+
+        -- select operates on arbitrary signals on the input network.
+        add_type_read("select ", "item")
+        add_access(
+          "select input signal",
+          nil,
+          Signal_access:new{
+            description = "select input signal",
+            direct_access = nil,
+            matches = function(self, s)
+              return true
+            end
+          }
+        )
+
+      elseif operation == "count" then
+
+        add_access(
+          "count signals",
+          nil,
+          Signal_access:new{
+            description = "count input signals",
+            direct_access = nil,
+            matches = function(self, s)
+              return true
+            end
+          }
+        )
+
+      elseif operation == "random" then
+
+        add_access(
+          "random input signal",
+          nil,
+          Signal_access:new{
+            description = "random input signal",
+            direct_access = nil,
+            matches = function(self, s)
+              return true
+            end
+          }
+        )
+
+      elseif operation == "quality-filter" then
+
+        add_access(
+          "quality filter",
+          nil,
+          Signal_access:new{
+            description = "quality filter",
+            direct_access = nil,
+            matches = function(self, s)
+              return true
+            end
+          }
+        )
+
+      elseif operation == "quality-transfer" then
+
+        if p.quality_source_signal then
+          add_simple_read(
+            "quality source ",
+            p.quality_source_signal
+          )
+        end
+
+        if p.quality_destination_signal then
+          add_combinator_output(
+            "quality destination ",
+            p.quality_destination_signal
+          )
+        end
+
+      elseif operation == "time" then
+
+        add_access(
+          "game/day tick signals",
+          nil,
+          Signal_access:new{
+            description = "time signal",
+            direct_access = {
+              p.game_tick_signal,
+              p.day_tick_signal,
+              p.day_length_signal
+            }
+          }
+        )
+
+      end
+    end
+
+    if p and output_ok then
+      -- The selector combinator has one output whose exact signal depends
+      -- on the selected operation/input.
+      add_access(
+        "selector output",
+        current_signals(behavior.signals_last_tick),
+        Signal_access:new{
+          description = "selector output",
+          direct_access = nil,
+          matches = function(self, s)
+            return true
+          end
+        }
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- CONSTANT COMBINATOR
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.constant_combinator then
+
+    if output_ok then
+      local current = {}
+
+      for _, section in pairs(behavior.sections or {}) do
+        if section.active then
+          for _, filter in pairs(section.filters or {}) do
+            if filter.signal and filter.count then
+              table.insert(current, {
+                signal = filter.signal,
+                count = filter.count * (section.multiplier or 1)
+              })
+            end
+          end
+        end
+      end
+
+      add_access(
+        "constant signals",
+        current,
+        Signal_access:new{
+          description = "constant signal",
+          direct_access = nil,
+          matches = function(self, s)
+            for _, section in pairs(behavior.sections or {}) do
+              if section.active then
+                for _, filter in pairs(section.filters or {}) do
+                  if filter.signal and same_signal(filter.signal, s) then
+                    return true
+                  end
+                end
+              end
+            end
+            return false
+          end
+        }
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- CONTAINERS
+  --------------------------------------------------------------------------
 
   elseif t == defines.control_behavior.type.container
       or t == defines.control_behavior.type.logistic_container
       or t == defines.control_behavior.type.proxy_container then
+
     if output_ok and behavior.read_contents then
-      -- Dynamic contents: actual signals are determined from the inventory.
       local inventory = entity.get_inventory(defines.inventory.chest)
-      local write_contrib = {}
-      if inventory then
-        for _, item in pairs(inventory.get_contents()) do
-          table.insert(write_contrib,{signal = {type="item", name=item.name}, count = item.count})
-        end
-      end
-      add_access("read contents " --[[ TODO items]], write_contrib,
-        Signal_access:new_type_match("any item","item"))
+      add_inventory_contents("read contents ", inventory)
     end
+
     if output_ok and behavior.read_empty_slots then
-      add_set("read empty slots ",behavior.empty_slots_signal,"?")
+      add_set(
+        "read empty slots ",
+        behavior.empty_slots_signal,
+        "?"
+      )
     end
+
     if t == defines.control_behavior.type.logistic_container then
       if input_ok and behavior.circuit_condition_enabled then
-        add_comparison("enable if ",behavior.circuit_condition)
+        add_comparison("enable if ", behavior.circuit_condition)
       end
+
       if input_ok and behavior.set_requests then
-        add_access("set requests",nil,Signal_access:new_type_match("any item","item"))
+        add_access(
+          "set requests",
+          nil,
+          Signal_access:new_type_match("any item", "item")
+        )
       end
     end
+
+
+  --------------------------------------------------------------------------
+  -- FLUID BOX
+  --------------------------------------------------------------------------
 
   elseif t == defines.control_behavior.type.single_fluid_box then
-    if (output_ok and behavior.read_temperature) then
-      add_set("set temperature ", behavior.temperature_signal, entity.get_fluid(1).temperature)
+
+    if output_ok and behavior.read_temperature then
+      local fluid = entity.get_fluid(1)
+
+      add_set(
+        "set temperature ",
+        behavior.temperature_signal,
+        fluid and fluid.temperature or "?"
+      )
     end
-    if (output_ok and behavior.circuit_exclusive_mode_of_operation) then -- TODO operation is an enum
-    -- TODO without fluid, this crashes
-      add_access("read fluid, currently " .. string.format("%s [fluid=%s]",math.ceil(entity.get_fluid(1).amount),(entity.get_fluid(1).name)),{{signal = { type="fluid", name=entity.get_fluid(1).name}, count = entity.get_fluid(1).amount}},
-      Signal_access:new_type_match("any fluid","fluid"))
-    end
-  elseif t == defines.control_behavior.type.inserter then
-    if input_ok and behavior.circuit_set_stack_size then
-      add_simple_read("set stack size ", behavior.circuit_stack_control_signal)
-    end
-    if output_ok and behavior.circuit_read_hand_contents then
-      -- Dynamic: the hand contents are not represented by a fixed signal.
-      -- We add the current hand item, when available.
-      local hand = entity.held_stack
-      local currentwrite = {}
-      if hand and hand.valid_for_read then
-        table.insert(currentwrite,{signal={type="item", name=hand.name},count=hand.count})
+
+    if output_ok and behavior.circuit_exclusive_mode_of_operation then
+      local fluid = entity.get_fluid(1)
+
+      local current = {}
+
+      if fluid then
+        table.insert(current, {
+          signal = {
+            type = "fluid",
+            name = fluid.name
+          },
+          count = fluid.amount
+        })
       end
-      add_access("read hand contents ",currentwrite, Signal_access:new_type_match("any item","item"))
+
+      add_access(
+        fluid
+          and ("read fluid, currently "
+            .. string.format("%s [fluid=%s]",
+              math.ceil(fluid.amount),
+              fluid.name))
+          or "read fluid, currently empty",
+        current,
+        Signal_access:new_type_match("any fluid", "fluid")
+      )
     end
 
 
+  --------------------------------------------------------------------------
+  -- INSERTER
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.inserter then
+
+    if input_ok and behavior.circuit_set_stack_size then
+      add_simple_read(
+        "set stack size ",
+        behavior.circuit_stack_control_signal
+      )
+    end
+
+    if input_ok and behavior.circuit_set_filters then
+      add_access(
+        "set filters",
+        nil,
+        Signal_access:new_type_match("any item", "item")
+      )
+    end
+
+    if output_ok and behavior.circuit_read_hand_contents then
+
+      local hand = entity.held_stack
+      local current = {}
+
+      if hand and hand.valid_for_read then
+        table.insert(current, {
+          signal = {
+            type = "item",
+            name = hand.name
+          },
+          count = hand.count
+        })
+      end
+
+      add_access(
+        "read hand contents ",
+        current,
+        Signal_access:new_type_match("any item", "item")
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- ACCUMULATOR
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.accumulator then
+
+    if output_ok and behavior.read_charge then
+      add_set(
+        "read charge ",
+        behavior.output_signal,
+        entity.energy / entity.electric_buffer_size * 100
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- BELT
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.transport_belt then
+
+    if output_ok and behavior.read_contents then
+      local current = {}
+
+      for _, line in pairs(entity.get_transport_line(1) and {
+        entity.get_transport_line(1),
+        entity.get_transport_line(2)
+      } or {}) do
+        if line then
+          for _, item in pairs(line.get_contents()) do
+            table.insert(current, {
+              signal = {
+                type = "item",
+                name = item.name
+              },
+              count = item.count
+            })
+          end
+        end
+      end
+
+      add_access(
+        "read belt contents ",
+        current,
+        Signal_access:new_type_match("any item", "item")
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- ASSEMBLING MACHINE
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.assembling_machine then
+
+    if input_ok and behavior.circuit_set_recipe then
+      add_access(
+        "set recipe",
+        nil,
+        Signal_access:new_type_match("any recipe item", "item")
+      )
+    end
+
+    if output_ok and behavior.circuit_read_contents then
+      local inventories = {}
+
+      local input = entity.get_inventory(defines.inventory.assembling_machine_input)
+      local output = entity.get_inventory(defines.inventory.assembling_machine_output)
+
+      if input then table.insert(inventories, input) end
+      if output then table.insert(inventories, output) end
+
+      add_inventories(
+        "read contents ",
+        inventories
+      )
+    end
+
+    if output_ok and behavior.read_fuel then
+      local fuel = entity.get_inventory(defines.inventory.fuel)
+      add_inventory_contents("read fuel ", fuel)
+    end
+
+    if output_ok and behavior.circuit_read_ingredients then
+      add_access(
+        "read recipe ingredients",
+        nil,
+        Signal_access:new_type_match("recipe ingredients", "item")
+      )
+    end
+
+    if output_ok and behavior.circuit_read_recipe_finished then
+      add_set(
+        "recipe finished ",
+        behavior.circuit_recipe_finished_signal,
+        "?"
+      )
+    end
+
+    if output_ok and behavior.circuit_read_working then
+      add_set(
+        "working ",
+        behavior.circuit_working_signal,
+        "?"
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- FURNACE
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.furnace then
+
+    if output_ok and behavior.circuit_read_contents then
+      local inventories = {}
+
+      local input = entity.get_inventory(defines.inventory.furnace_source)
+      local output = entity.get_inventory(defines.inventory.furnace_result)
+
+      if input then table.insert(inventories, input) end
+      if output then table.insert(inventories, output) end
+
+      add_inventories("read contents ", inventories)
+    end
+
+    if output_ok and behavior.read_fuel then
+      add_inventory_contents(
+        "read fuel ",
+        entity.get_inventory(defines.inventory.fuel)
+      )
+    end
+
+    if output_ok and behavior.circuit_read_ingredients then
+      add_access(
+        "read recipe ingredients",
+        nil,
+        Signal_access:new_type_match("recipe ingredients", "item")
+      )
+    end
+
+    if output_ok and behavior.circuit_read_recipe_finished then
+      add_set(
+        "recipe finished ",
+        behavior.circuit_recipe_finished_signal,
+        "?"
+      )
+    end
+
+    if output_ok and behavior.circuit_read_working then
+      add_set(
+        "working ",
+        behavior.circuit_working_signal,
+        "?"
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- MINING DRILL
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.mining_drill then
+
+    if output_ok and behavior.circuit_read_resources then
+
+      local current = {}
+
+      for _, resource in pairs(behavior.resource_read_targets or {}) do
+        if resource.valid then
+          table.insert(current, {
+            signal = {
+              type = "item",
+              name = resource.name
+            },
+            count = resource.amount
+          })
+        end
+      end
+
+      add_access(
+        "read resources ",
+        current,
+        Signal_access:new_type_match("any resource", "item")
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- LAB
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.lab then
+
+    if output_ok and behavior.read_contents then
+      add_inventories(
+        "read contents ",
+        {
+          entity.get_inventory(defines.inventory.lab_input)
+        }
+      )
+    end
+
+    if output_ok and behavior.read_fuel then
+      add_inventory_contents(
+        "read fuel ",
+        entity.get_inventory(defines.inventory.fuel)
+      )
+    end
+
+    if output_ok and behavior.read_technology_level then
+      add_set(
+        "technology level ",
+        behavior.technology_level_signal,
+        "?"
+      )
+    end
+
+    if input_ok and behavior.set_research then
+      for _, condition in pairs(behavior.research_conditions or {}) do
+        add_comparison("research condition ", condition)
+      end
+    end
+
+
+  --------------------------------------------------------------------------
+  -- ROBOport
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.roboport then
+
+    if output_ok and behavior.read_robot_stats then
+      add_set(
+        "available logistic robots ",
+        behavior.available_logistic_output_signal,
+        "?"
+      )
+
+      add_set(
+        "total logistic robots ",
+        behavior.total_logistic_output_signal,
+        "?"
+      )
+
+      add_set(
+        "available construction robots ",
+        behavior.available_construction_output_signal,
+        "?"
+      )
+
+      add_set(
+        "total construction robots ",
+        behavior.total_construction_output_signal,
+        "?"
+      )
+
+      add_set(
+        "roboport count ",
+        behavior.roboport_count_output_signal,
+        "?"
+      )
+    end
+
+    if output_ok and behavior.read_items_mode then
+      add_type_read("read roboport contents ", "item")
+    end
+
+
+  --------------------------------------------------------------------------
+  -- TRAIN STOP
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.train_stop then
+
+    if input_ok and behavior.send_to_train then
+      add_access(
+        "send signals to train",
+        nil,
+        Signal_access:new{
+          description = "train schedule signals",
+          direct_access = nil,
+          matches = function(self, s)
+            return true
+          end
+        }
+      )
+    end
+
+    if output_ok and behavior.read_from_train then
+      add_access(
+        "read train contents",
+        {},
+        Signal_access:new_type_match("train contents", "item")
+      )
+    end
+
+    if output_ok and behavior.read_stopped_train then
+      add_set(
+        "stopped train ",
+        behavior.stopped_train_signal,
+        "?"
+      )
+    end
+
+    if output_ok and behavior.read_trains_count then
+      add_set(
+        "trains count ",
+        behavior.trains_count_signal,
+        "?"
+      )
+    end
+
+    if input_ok and behavior.set_trains_limit then
+      add_simple_read(
+        "set train limit ",
+        behavior.trains_limit_signal
+      )
+    end
+
+    if input_ok and behavior.set_priority then
+      add_simple_read(
+        "set priority ",
+        behavior.priority_signal
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- RAIL SIGNAL
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.rail_signal
+      or t == defines.control_behavior.type.rail_chain_signal then
+
+    if input_ok and behavior.close_signal then
+      add_comparison("close if ", behavior.circuit_condition)
+    end
+
+    if output_ok and behavior.read_signal then
+      add_set("red signal ", behavior.red_signal, "?")
+      add_set("orange signal ", behavior.orange_signal, "?")
+      add_set("green signal ", behavior.green_signal, "?")
+      add_set("blue signal ", behavior.blue_signal, "?")
+    end
+
+
+  --------------------------------------------------------------------------
+  -- LAMP
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.lamp then
+
+    if input_ok and behavior.use_colors then
+      add_access(
+        "set color",
+        nil,
+        Signal_access:new{
+          description = "lamp color signals",
+          direct_access = {
+            behavior.red_signal,
+            behavior.green_signal,
+            behavior.blue_signal,
+            behavior.rgb_signal
+          }
+        }
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- RADAR
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.radar then
+
+    if input_ok and behavior.universe_channel then
+      add_simple_read(
+        "universe channel ",
+        behavior.universe_channel
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- ROCKET SILO
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.rocket_silo then
+
+    if output_ok and behavior.read_launched then
+      add_set(
+        "rocket launched ",
+        behavior.launched_signal,
+        "?"
+      )
+    end
+
+    if output_ok then
+      add_type_read("read rocket silo contents ", "item")
+    end
+
+
+  --------------------------------------------------------------------------
+  -- BOILER
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.boiler then
+
+    if output_ok and behavior.read_fuel then
+      add_inventory_contents(
+        "read fuel ",
+        entity.get_inventory(defines.inventory.fuel)
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- ASTEROID COLLECTOR
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.asteroid_collector then
+
+    if output_ok and behavior.read_content then
+      add_inventory_contents(
+        "read contents ",
+        entity.get_inventory(defines.inventory.asteroid_collector)
+      )
+    end
+
+    if output_ok and behavior.include_hands then
+      add_access(
+        "read captured asteroids ",
+        {},
+        Signal_access:new_type_match("any item", "item")
+      )
+    end
+
+    if input_ok and behavior.set_filter then
+      add_access(
+        "set asteroid filter",
+        nil,
+        Signal_access:new_type_match("any asteroid", "item")
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- AGRICULTURAL TOWER
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.agricultural_tower then
+
+    if output_ok and behavior.read_contents then
+      add_inventory_contents(
+        "read contents ",
+        entity.get_inventory(defines.inventory.asteroid_collector)
+      )
+    end
+
+    if input_ok and behavior.enable_harvesting_condition then
+      add_comparison(
+        "harvest if ",
+        behavior.harvesting_condition
+      )
+    end
+
+    if input_ok and behavior.enable_planting_condition then
+      add_comparison(
+        "plant if ",
+        behavior.planting_condition
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- LOADER
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.loader then
+
+    if input_ok and behavior.circuit_set_filters then
+      add_access(
+        "set loader filters",
+        nil,
+        Signal_access:new_type_match("any item", "item")
+      )
+    end
+
+    if output_ok and behavior.circuit_read_transfers then
+      add_access(
+        "read transfers",
+        {},
+        Signal_access:new_type_match("any item", "item")
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- SPLITTER
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.splitter then
+
+    if input_ok then
+      if behavior.set_input_side then
+        add_comparison(
+          "set input side if ",
+          behavior.input_left_condition
+        )
+        add_comparison(
+          "set input side if ",
+          behavior.input_right_condition
+        )
+      end
+
+      if behavior.set_output_side then
+        add_comparison(
+          "set output side if ",
+          behavior.output_left_condition
+        )
+        add_comparison(
+          "set output side if ",
+          behavior.output_right_condition
+        )
+      end
+
+      if behavior.set_filter then
+        add_access(
+          "set splitter filter",
+          nil,
+          Signal_access:new_type_match("any item", "item")
+        )
+      end
+    end
+
+
+  --------------------------------------------------------------------------
+  -- PUMP
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.pump then
+
+    if input_ok and behavior.set_filter then
+      add_access(
+        "set fluid filter",
+        nil,
+        Signal_access:new_type_match("any fluid", "fluid")
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- ARTILLERY TURRET
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.artillery_turret then
+
+    -- The artillery turret has only the generic enable/disable behavior.
+    -- That was handled above.
+
+
+  --------------------------------------------------------------------------
+  -- TURRET
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.turret then
+
+    -- Generic enable/disable behavior only.
+
+
+  --------------------------------------------------------------------------
+  -- LAND MINE
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.land_mine then
+
+    -- Generic enable/disable behavior only.
+
+
+  --------------------------------------------------------------------------
+  -- WALL
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.wall then
+
+    -- Generic enable/disable behavior only.
+
+
+  --------------------------------------------------------------------------
+  -- HEAT PIPE
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.heat_pipe then
+
+    -- No circuit-specific signal access.
+
+
+  --------------------------------------------------------------------------
+  -- DISPLAY PANEL
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.display_panel then
+
+    -- Display panels currently don't expose a circuit signal behavior
+    -- beyond the generic control behavior.
+
+
+  --------------------------------------------------------------------------
+  -- PROGRAMMABLE SPEAKER
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.programmable_speaker then
+
+    if input_ok then
+      add_comparison(
+        "play if ",
+        behavior.circuit_condition
+      )
+    end
+
+
+  --------------------------------------------------------------------------
+  -- SPACE PLATFORM HUB
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.space_platform_hub then
+
+    if output_ok and behavior.read_contents then
+      add_inventory_contents(
+        "read platform contents ",
+        entity.get_inventory(defines.inventory.hub_main)
+      )
+    end
+
+    if output_ok and behavior.read_empty_slots then
+      add_set(
+        "read empty slots ",
+        behavior.empty_slots_signal,
+        "?"
+      )
+    end
+
+    if input_ok and behavior.set_requests then
+      add_access(
+        "set platform requests",
+        nil,
+        Signal_access:new_type_match("any item", "item")
+      )
+    end
+
+    if input_ok and behavior.send_to_platform then
+      add_access(
+        "send signals to platform schedule",
+        nil,
+        Signal_access:new{
+          description = "platform schedule signals",
+          direct_access = nil,
+          matches = function(self, s)
+            return true
+          end
+        }
+      )
+    end
+
+    if output_ok and behavior.read_moving_from then
+      add_access(
+        "read moving-from connection",
+        {},
+        Signal_access:new{
+          description = "platform connection signal",
+          direct_access = nil,
+          matches = function(self, s)
+            return true
+          end
+        }
+      )
+    end
   end
+
   return result
 end
 
