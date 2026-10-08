@@ -131,6 +131,33 @@ behavior_access = {
   access :: enum { write, read } --
 }
 ]]
+Signal_access = {
+  description = "",
+  direct_access = {},
+  matches = function (self ,s)
+    for _,da in ipairs(self.direct_access) do
+      if same_signal(da, s) then return true end
+    end
+    return false
+  end
+}
+
+function Signal_access:new(o)
+  o = o or {}
+  setmetatable(o, self)
+  self.__index = self
+  return o
+end
+
+function Signal_access:new_single(desc, signal)
+  local o = {
+    description = desc,
+    direct_access = { signal },
+    single_signal = signal,
+    matches = function (self, s) return same_signal(s, self.single_signal) end
+  }
+  return Signal_access:new(o)
+end
 
 local function behavior_accesses(entity, behavior, wire_type)
   local result = {}
@@ -148,11 +175,7 @@ local function behavior_accesses(entity, behavior, wire_type)
     local write_contribution = { [signal_key(signal)] = value }
       add_access(text .. signal_to_rich_text(signal) .. " = " .. (value or "(not set)"),
          write_contribution,
-        {
-          description = "set a value",
-          direct_access = { signal },
-          matches = function (self, s) return same_signal(s, signal) end
-        })
+         Signal_access:new_single("set a value", signal))
   end
 
   local function add_simple_read(text, signal)
