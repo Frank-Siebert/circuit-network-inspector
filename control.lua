@@ -151,7 +151,7 @@ local function behavior_accesses(entity, behavior, wire_type)
         {
           description = "set a value",
           direct_access = { signal },
-          matches = function (s) return same_signal(s, signal) end
+          matches = function (self, s) return same_signal(s, signal) end
         })
   end
 
@@ -160,7 +160,7 @@ local function behavior_accesses(entity, behavior, wire_type)
         {
           description = "read a value",
           direct_access = { signal },
-          matches = function (s) return same_signal(s, signal) end
+          matches = function (self, s) return same_signal(s, signal) end
         })
 
   end
@@ -173,7 +173,7 @@ local function behavior_accesses(entity, behavior, wire_type)
                       {
       description = "control comparison",
       direct_access = {circuit_condition.first_signal, circuit_condition.second_signal},
-      matches = function (signal) return same_signal(signal, circuit_condition.first_signal) or (circuit_condition.second_signal and same_signal(circuit_condition.second_signal,signal)) end
+      matches = function (self, signal) return same_signal(signal, circuit_condition.first_signal) or (circuit_condition.second_signal and same_signal(circuit_condition.second_signal,signal)) end
                       })
   end
 
@@ -199,7 +199,7 @@ local function behavior_accesses(entity, behavior, wire_type)
       description = "arithmetic operation",
       direct_access = { network_selected(p.first_signal_networks , wire_type) and p.first_signal,
                         network_selected(p.second_signal_networks, wire_type) and p.second_signal},
-      matches = function (signal) return (p.first_signal and same_signal(signal, p.first_signal) and network_selected(p.first_signal_networks , wire_type))
+      matches = function (self, signal) return (p.first_signal and same_signal(signal, p.first_signal) and network_selected(p.first_signal_networks , wire_type))
                                      or (p.second_signal and same_signal(p.second_signal,signal) and network_selected(p.second_signal_networks, wire_type)) end
                       })
 
@@ -221,7 +221,7 @@ local function behavior_accesses(entity, behavior, wire_type)
             description = "comparation",
             direct_access = { network_selected(c.first_signal_networks , wire_type) and c.first_signal,
                               network_selected(c.second_signal_networks, wire_type) and c.second_signal},
-            matches = function (signal) return (same_signal(signal, c.first_signal) and network_selected(c.first_signal_networks , wire_type))
+            matches = function (self, signal) return (same_signal(signal, c.first_signal) and network_selected(c.first_signal_networks , wire_type))
                         or (c.second_signal and same_signal(c.second_signal,signal) and network_selected(c.second_signal_networks, wire_type)) end
                           })
 
@@ -248,7 +248,7 @@ local function behavior_accesses(entity, behavior, wire_type)
       add_access("read contents " --[[ TODO items]], write_contrib, {
         description ="any item",
         direct_access = nil,
-        matches = function (signal) return not signal.type or signal.type == "item" end
+        matches = function (self, signal) return not signal.type or signal.type == "item" end
       })
     end
     if t == defines.control_behavior.type.logistic_container then
@@ -267,7 +267,7 @@ local function behavior_accesses(entity, behavior, wire_type)
     {
       description = "any fluid",
       direct_access = {  }, -- TODO set to currently read
-      matches = function (signal) return signal.type == "fluid" end
+      matches = function (self, signal) return signal.type == "fluid" end
     })
     end
   elseif t == defines.control_behavior.type.inserter then
@@ -287,7 +287,7 @@ local function behavior_accesses(entity, behavior, wire_type)
     {
       description = "any item",
       direct_access = nil,
-      matches = function (signal) return not signal.type or signal.type == "item" end
+      matches = function (self, signal) return not signal.type or signal.type == "item" end
     })
     end
 
@@ -601,12 +601,12 @@ local function is_access(a, options, filter_writes)
   else
     if a_is_write and options.current_writes then return a.currentwrite[signal_key(options.signal)] end
     if not options.literal_matching and (
-       a.dynamic_potentials.matches({type = "virtual", name="signal-all"}) or
-       a.dynamic_potentials.matches({type = "virtual", name="signal-each"}) or
-       a.dynamic_potentials.matches({type = "virtual", name="signal-any"}))
+       a.dynamic_potentials:matches({type = "virtual", name="signal-all"}) or
+       a.dynamic_potentials:matches({type = "virtual", name="signal-each"}) or
+       a.dynamic_potentials:matches({type = "virtual", name="signal-any"}))
     then return true end
 
-    return a.dynamic_potentials.matches(options.signal)
+    return a.dynamic_potentials:matches(options.signal)
   end
 end
 
