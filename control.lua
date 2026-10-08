@@ -266,7 +266,7 @@ local function behavior_accesses(entity, behavior, wire_type)
       local write_contrib = {}
       if inventory then
         for _, item in pairs(inventory.get_contents()) do
-          table.insert(write_contrib,{signalID = {type="item", name=item.name}, count = item.count})
+          table.insert(write_contrib,{signal = {type="item", name=item.name}, count = item.count})
         end
       end
       add_access("read contents " --[[ TODO items]], write_contrib,
@@ -298,7 +298,6 @@ local function behavior_accesses(entity, behavior, wire_type)
       local hand = entity.held_stack
       local currentwrite = {}
       if hand and hand.valid_for_read then
-        --add_write({type="item", name=hand.name})
         table.insert(currentwrite,{signal={type="item", name=hand.name},count=hand.count})
       end
       add_access("read hand contents ",currentwrite, Signal_access:new_type_match("any item","item"))
