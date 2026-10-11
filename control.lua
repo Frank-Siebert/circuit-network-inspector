@@ -1326,13 +1326,29 @@ local function behavior_accesses(entity, behavior, wire_type)
     end
 
   --------------------------------------------------------------------------
+  -- REACTOR
+  --------------------------------------------------------------------------
+
+elseif t == defines.control_behavior.type.reactor then
+    if output_ok then
+      if behavior.read_temperature and behavior.temperature_signal then
+        add_set("reactor temperature: ", behavior.temperature_signal, entity.temperature)
+      end
+
+      if behavior.read_fuel then
+        add_inventory_contents("reactor fuel", entity.get_fuel_inventory())
+      end
+    end
+  --------------------------------------------------------------------------
   -- HEAT PIPE
   --------------------------------------------------------------------------
 
   elseif t == defines.control_behavior.type.heat_pipe then
-
-    -- No circuit-specific signal access.
-
+    if output_ok then
+      if behavior.read_temperature and behavior.temperature_signal then
+        add_set("reactor temperature: ", behavior.temperature_signal, entity.temperature)
+      end
+    end
 
   --------------------------------------------------------------------------
   -- DISPLAY PANEL

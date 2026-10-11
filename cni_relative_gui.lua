@@ -58,6 +58,7 @@ local entity_type_to_gui_type = {
 
     -- Flüssigkeiten & Rohre
     ["storage-tank"]             = defines.relative_gui_type.pipe_gui,
+    ["pipe"]                     = defines.relative_gui_type.pipe_gui,
     ["pump"]                     = defines.relative_gui_type.pump_gui,
 
     -- space
@@ -71,6 +72,7 @@ local entity_type_to_gui_type = {
     ["splitter"]                 = defines.relative_gui_type.splitter_gui,
     ["transport-belt"]           = defines.relative_gui_type.transport_belt_gui,
     ["underground-belt"]         = defines.relative_gui_type.transport_belt_gui,
+    ["heat-pipe"]                = defines.relative_gui_type.heat_pipe_gui,
     ["loader"]                   = defines.relative_gui_type.loader_gui,
     ["loader-1x1"]               = defines.relative_gui_type.loader_gui,
     ["market"]                   = defines.relative_gui_type.market_gui,
