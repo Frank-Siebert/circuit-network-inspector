@@ -1276,10 +1276,31 @@ local function behavior_accesses(entity, behavior, wire_type)
   --------------------------------------------------------------------------
 
   elseif t == defines.control_behavior.type.turret then
+    if input_ok then
+      if behavior.set_ignore_unlisted_targets then
+        add_comparison(
+          "ignore unlisted targets condition: ",
+          behavior.ignore_unlisted_targets_condition
+        )
+      end
 
-    -- Generic enable/disable behavior only.
+      if behavior.set_priority_list then
+        add_access("target priority list: ", nil,
+          Signal_access:new{
+            description = "enemy target signals",
+            matches = function(self, s)
+              return s.type == "entity" -- TODO heuristic for PvE, include biters and asteroids. In PvP, can be tank, player, turret etc.
+            end
+        })
+      end
+    end
 
-
+    if output_ok and behavior.read_ammo then
+      add_access("ammunition contents: ", {},
+        Signal_access:new_type_match("item ammunition", "item")
+        --,Signal_access:new_type_match("fluid ammunition", "fluid")
+      )
+    end
   --------------------------------------------------------------------------
   -- LAND MINE
   --------------------------------------------------------------------------
