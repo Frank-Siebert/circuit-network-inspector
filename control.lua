@@ -916,8 +916,8 @@ local function behavior_accesses(entity, behavior, wire_type)
     end
 
     if input_ok and behavior.set_research then
-      for _, condition in pairs(behavior.research_conditions or {}) do
-        add_comparison("research condition ", condition)
+      for _, research_condition in pairs(behavior.research_conditions or {}) do
+        add_comparison("research " .. (research_condition.name or "N/A") .. " when", research_condition.condition)
       end
     end
 
