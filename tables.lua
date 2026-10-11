@@ -2,6 +2,8 @@
 Entity_type_to_gui_type = {
     -- Produktions- & Verarbeitungsmaschinen
     ["assembling-machine"]       = defines.relative_gui_type.assembling_machine_gui,
+    -- TODO when to select assembling machine select recipe?
+    --["assembling-machine"]       = defines.relative_gui_type.assembling_machine_select_recipe_gui,
     ["furnace"]                  = defines.relative_gui_type.furnace_gui,
     ["rocket-silo"]              = defines.relative_gui_type.rocket_silo_gui,
     ["mining-drill"]             = defines.relative_gui_type.mining_drill_gui,
@@ -24,6 +26,7 @@ Entity_type_to_gui_type = {
     -- Strom & Energie
     ["accumulator"]              = defines.relative_gui_type.accumulator_gui,
     ["generator"]                = defines.relative_gui_type.generator_gui,
+    ["boiler"]                   = defines.relative_gui_type.boiler_gui,
     ["solar-panel"]              = defines.relative_gui_type.solar_panel_gui,
     ["reactor"]                  = defines.relative_gui_type.reactor_gui,
     ["electric-energy-interface"] = defines.relative_gui_type.electric_energy_interface_gui,
@@ -49,8 +52,8 @@ Entity_type_to_gui_type = {
     -- Zuginfrastruktur
     ["train-stop"]               = defines.relative_gui_type.train_stop_gui,
     ["locomotive"]               = defines.relative_gui_type.locomotive_gui,
-    ["rail-signal"]              = defines.relative_gui_type.rail_signal_gui,
-    ["rail-chain-signal"]        = defines.relative_gui_type.rail_chain_signal_gui,
+    ["rail-signal"]              = defines.relative_gui_type.rail_signal_base_gui,
+    ["rail-chain-signal"]        = defines.relative_gui_type.rail_signal_base_gui,
 
     -- Flüssigkeiten & Rohre
     ["storage-tank"]             = defines.relative_gui_type.pipe_gui,
