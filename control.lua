@@ -1791,6 +1791,7 @@ local function open_inspector(player, source, network)
     name=GUI,
     direction="vertical"
   }
+  player.opened = frame
 
   local titlebar = frame.add{
     type = "flow",
@@ -1976,6 +1977,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
 
   if event.element and event.element.valid and event.element.name == GUI then
     if storage.cni then storage.cni[player.index] = nil end
+    event.element.destroy()
   end
 
   if event.gui_type == defines.gui_type.entity then
