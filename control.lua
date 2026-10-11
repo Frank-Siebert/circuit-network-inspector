@@ -1317,9 +1317,13 @@ local function behavior_accesses(entity, behavior, wire_type)
   --------------------------------------------------------------------------
 
   elseif t == defines.control_behavior.type.wall then
+    if input_ok and behavior.open_gate then
+      add_comparison("open gate condition: ", behavior.circuit_condition)
+    end
 
-    -- Generic enable/disable behavior only.
-
+    if output_ok and behavior.read_sensor and behavior.output_signal then
+      add_set("gate proximity sensor: ",behavior.output_signal,"?")
+    end
 
   --------------------------------------------------------------------------
   -- HEAT PIPE
