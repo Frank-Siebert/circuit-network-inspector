@@ -1038,7 +1038,9 @@ local function behavior_accesses(entity, behavior, wire_type)
       add_set("red signal ", behavior.red_signal, "?")
       add_set("orange signal ", behavior.orange_signal, "?")
       add_set("green signal ", behavior.green_signal, "?")
-      add_set("blue signal ", behavior.blue_signal, "?")
+      if t == defines.control_behavior.type.rail_chain_signal then
+        add_set("blue signal ", behavior.blue_signal, "?")
+      end
     end
 
 
