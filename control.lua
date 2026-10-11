@@ -1,4 +1,4 @@
-local cni_relative_gui = require("tables")
+local cni_relative_gui = require("cni_relative_gui")
 require("gui")
 
 local MOD = "circuit-network-inspector"
