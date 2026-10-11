@@ -25,6 +25,7 @@ local function circuit_networks(entity)
           result[key] = {
             id = network.network_id,
             wire_type = network.wire_type,
+            wire_connector_id = network.wire_connector_id,
             network = network
           }
         end
@@ -1792,6 +1793,23 @@ local function refresh(player)
   refresh_accesses(player, network)
 end
 
+-- only used in gui.
+local function network_to_text(network)
+  if network.wire_connector_id == defines.wire_connector_id.circuit_red then
+     return "[item=red-wire] " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.circuit_green then
+     return "[item=green-wire] " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.combinator_input_red then
+     return "[item=red-wire] input " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.combinator_input_green then
+     return "[item=green-wire] input " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.combinator_output_red then
+     return "[item=red-wire] out " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.combinator_output_green then
+     return "[item=green-wire] out " .. network.id
+  end
+end
+
 local function open_inspector(player, source, network)
   storage.cni = storage.cni or {}
   storage.cni[player.index] = {
@@ -1819,17 +1837,11 @@ local function open_inspector(player, source, network)
     direction = "horizontal"
   }
 
-  titlebar.add{
-    type = "label",
-    caption = "Circuit Network Inspector " .. network.id,
-    style = "frame_title"
-  }
-
   titlebar.drag_target = frame
 
   titlebar.add{
     type = "label",
-    caption = "Circuit Network Inspector",
+    caption = "Circuit Network Inspector " .. network_to_text(network),
     style = "frame_title",
     ignored_by_interaction = true
   }
@@ -1918,23 +1930,6 @@ local function focus_entity(player, entity)
     player.centered_on = entity
     player.zoom = player.zoom_limits.closest.zoom
     player.print(entity.gps_tag) -- this is the only `player.print` that should remain after removing debugging
-end
-
--- only used in gui.
-local function network_to_text(network)
-  if network.network.wire_connector_id == defines.wire_connector_id.circuit_red then
-     return "[item=red-wire] " .. network.id
-  elseif network.network.wire_connector_id == defines.wire_connector_id.circuit_green then
-     return "[item=green-wire] " .. network.id
-  elseif network.network.wire_connector_id == defines.wire_connector_id.combinator_input_red then
-     return "[item=red-wire] input " .. network.id
-  elseif network.network.wire_connector_id == defines.wire_connector_id.combinator_input_green then
-     return "[item=green-wire] input " .. network.id
-  elseif network.network.wire_connector_id == defines.wire_connector_id.combinator_output_red then
-     return "[item=red-wire] out " .. network.id
-  elseif network.network.wire_connector_id == defines.wire_connector_id.combinator_output_green then
-     return "[item=green-wire] out " .. network.id
-  end
 end
 
 -- Add a small button next to Factorio's additional-entity-info GUI.
