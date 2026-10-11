@@ -762,8 +762,8 @@ local function behavior_accesses(entity, behavior, wire_type)
     if output_ok and behavior.circuit_read_contents then
       local inventories = {}
 
-      local input = entity.get_inventory(defines.inventory.assembling_machine_input)
-      local output = entity.get_inventory(defines.inventory.assembling_machine_output)
+      local input = entity.get_inventory(defines.inventory.crafter_input)
+      local output = entity.get_inventory(defines.inventory.crafter_output)
 
       if input then table.insert(inventories, input) end
       if output then table.insert(inventories, output) end
