@@ -706,7 +706,7 @@ local function behavior_accesses(entity, behavior, wire_type)
       add_set(
         "read charge ",
         behavior.output_signal,
-        entity.energy / entity.electric_buffer_size * 100
+        entity.energy / entity.electric_buffer_size * 100 -- TODO most likely wrong. internal buffer ~= accumulator load
       )
     end
 
@@ -783,7 +783,7 @@ local function behavior_accesses(entity, behavior, wire_type)
       add_access(
         "read recipe ingredients",
         nil,
-        Signal_access:new_type_match("recipe ingredients", "item")
+        Signal_access:new_type_match("recipe ingredients", "item") -- TODO can also be liquids
       )
     end
 
