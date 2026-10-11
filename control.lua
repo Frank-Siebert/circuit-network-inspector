@@ -1768,7 +1768,7 @@ local function refresh_accesses(player, network)
   end
 
   right.add{type="line"}
-  right.add{type="label", caption="READERS", tooltip="entities reading from the network (writing toentity)"}
+  right.add{type="label", caption="READERS", tooltip="entities reading from the network (writing to entity)"}
   for _, entity in pairs(entities) do
     local read = false
     local reads = {}
