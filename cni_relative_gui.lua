@@ -3,9 +3,7 @@ local cni_relative_gui = {}
 -- https://lua-api.factorio.com/latest/defines.html#defines.relative_gui_type
 local entity_type_to_gui_type = {
     -- Produktions- & Verarbeitungsmaschinen
-    ["assembling-machine"]       = defines.relative_gui_type.assembling_machine_gui,
-    -- TODO when to select assembling machine select recipe?
-    --["assembling-machine"]       = defines.relative_gui_type.assembling_machine_select_recipe_gui,
+    ["assembling-machine"]       = defines.relative_gui_type.assembling_machine_gui, -- special case if no entity, see below
     ["furnace"]                  = defines.relative_gui_type.furnace_gui,
     ["rocket-silo"]              = defines.relative_gui_type.rocket_silo_gui,
     ["mining-drill"]             = defines.relative_gui_type.mining_drill_gui,
@@ -82,6 +80,9 @@ local entity_type_to_gui_type = {
 }
 
 function cni_relative_gui.gui_type_from_entity(entity)
+    if entity.type == "assembling-machine" and not entity.get_recipe() then
+        return defines.relative_gui_type.assembling_machine_select_recipe_gui
+    end
     return entity_type_to_gui_type[entity.type]
 end
 
