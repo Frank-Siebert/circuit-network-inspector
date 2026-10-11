@@ -48,6 +48,7 @@ local entity_type_to_gui_type = {
     ["fluid-turret"]             = defines.relative_gui_type.turret_gui,
     ["artillery-turret"]         = defines.relative_gui_type.artillery_turret_gui,
     ["radar"]                    = defines.relative_gui_type.radar_gui,
+    ["wall"]                     = defines.relative_gui_type.wall_gui,
 
     -- Zuginfrastruktur
     ["train-stop"]               = defines.relative_gui_type.train_stop_gui,
