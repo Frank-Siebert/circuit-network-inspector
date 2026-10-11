@@ -1,4 +1,4 @@
-require("tables")
+local cni_relative_gui = require("tables")
 require("gui")
 
 local MOD = "circuit-network-inspector"
@@ -1922,14 +1922,14 @@ local function add_relative_button(player, entity)
 
   local networks = circuit_networks(entity)
   if empty(networks) then return end
-  if not Entity_type_to_gui_type[entity.type] then player.print("Missing " .. entity.type .. " in table") ; return end
+  if not cni_relative_gui.gui_type_from_entity(entity) then player.print("Missing " .. entity.type .. " in table") ; return end
   player.gui.relative.add{
     type = "frame",
     name = BUTTON,
     caption = "Inspect circuit networks",
 	direction = "vertical",
 	anchor = {
-		gui = Entity_type_to_gui_type[entity.type],
+		gui = cni_relative_gui.gui_type_from_entity(entity),
 		position = defines.relative_gui_position.right
 	},
 	style = "frame"

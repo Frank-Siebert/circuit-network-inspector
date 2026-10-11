@@ -1,5 +1,7 @@
+local cni_relative_gui = {}
+
 -- https://lua-api.factorio.com/latest/defines.html#defines.relative_gui_type
-Entity_type_to_gui_type = {
+local entity_type_to_gui_type = {
     -- Produktions- & Verarbeitungsmaschinen
     ["assembling-machine"]       = defines.relative_gui_type.assembling_machine_gui,
     -- TODO when to select assembling machine select recipe?
@@ -78,3 +80,9 @@ Entity_type_to_gui_type = {
     ["heat-interface"]           = defines.relative_gui_type.heat_interface_gui
 
 }
+
+function cni_relative_gui.gui_type_from_entity(entity)
+    return entity_type_to_gui_type[entity.type]
+end
+
+return cni_relative_gui
