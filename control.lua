@@ -1164,9 +1164,10 @@ local function behavior_accesses(entity, behavior, wire_type)
   elseif t == defines.control_behavior.type.agricultural_tower then
 
     if output_ok and behavior.read_contents then
-      add_inventory_contents(
+      add_inventories(
         "read contents ",
-        entity.get_inventory(defines.inventory.asteroid_collector)
+        { entity.get_inventory(defines.inventory.agricultural_tower_input),
+          entity.get_inventory(defines.inventory.agricultural_tower_output) }
       )
     end
 
