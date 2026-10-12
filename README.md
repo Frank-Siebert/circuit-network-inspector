@@ -8,19 +8,6 @@ circuit-network inspector.
 
 The inspector has:
 
-* left panel: current network signals and `∀ All signals`
-* right panel: writers and readers
-* clicking a signal filters the entity list
-* clicking an entity selects it and opens its normal entity GUI
-
-This is intentionally a first/minimal implementation. The signal-access
-recognition is based on the public Factorio 2.1 control-behavior API and
-covers the common vanilla behaviors; dynamic signal producers are represented
-conservatively.
-
-The mod currently inspects the first circuit network found on the source
-entity. If an entity is connected to several independent red/green networks,
-a later version should expose network selection explicitly.
 
 ## Acknowledgements:
 
@@ -34,10 +21,6 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 
 ### normal work
 * if a decider output (write) says "input count", that also qualifies as read!
-* some entities might be missing, e.g. labs
-* the entity list should contain the actual accesses, like "enable if [V] < 150", more of it. do for everything or let AI do it.
-* improve gui for list of entities
-* actually show the current signals in access list (done for left panel)
 * click into list of current values for filter?
 
 ### for publishing

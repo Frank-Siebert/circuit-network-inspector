@@ -1603,7 +1603,11 @@ local function refresh_accesses(player, network)
     for _,a in ipairs(entity_roles(entity, network)) do
       if is_access(a,options,true) then write = true; table.insert(writes,a) end
     end
-    if write then add_entity_button(right, entity, nil, "writer", options.signal, writes) end
+    if write then
+      add_entity_button(right, entity, nil, "writer", options.signal, writes)
+    else
+      right.add{type="label", caption="No writing entities."}
+    end
   end
 
   right.add{type="line"}
@@ -1614,11 +1618,11 @@ local function refresh_accesses(player, network)
     for _,a in ipairs(entity_roles(entity, network)) do
       if is_access(a,options,false) then read = true; table.insert(reads, a) end
     end
-    if read then add_entity_button(right, entity, nil, "reader", options.signal, reads) end
-  end
-
-  if false and (#writers == 0 and #readers == 0) then -- TODO fix.
-    right.add{type="label", caption="No matching entities."}
+    if read then
+      add_entity_button(right, entity, nil, "reader", options.signal, reads)
+    else
+      right.add{type="label", caption="No reading entities."}
+    end
   end
 end
 
@@ -1904,16 +1908,6 @@ script.on_event(defines.events.on_gui_elem_changed, function(event)
 
     local signal = event.element.elem_value
     storage.cni[event.player_index].options.signal = signal
-    if signal then
-        game.print(
-            "Selected: "
-            .. (signal.type or "item")
-            .. "="
-            .. signal.name
-        )
-    else
-        game.print("No signal selected")
-    end
     refresh_options(event.element.parent.parent, signal ~= nil)
     refresh_accesses(game.get_player(event.player_index))
   end
