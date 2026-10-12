@@ -67,6 +67,18 @@ local function signal_text(signal)
   return prefix .. " " .. signal.name
 end
 
+local function combinator_wires_selected(selection, is_out, entity, network)
+  local red, green
+  if is_out then
+    red, green = defines.wire_connector_id.combinator_output_red,defines.wire_connector_id.combinator_output_green
+  else
+    red, green =  defines.wire_connector_id.combinator_input_red, defines.wire_connector_id.combinator_input_green
+  end
+  return
+    entity.get_wire_connector(red  ) and entity.get_wire_connector(red  ).network_id == network.id and (not selection or selection.red) or
+    entity.get_wire_connector(green) and entity.get_wire_connector(green).network_id == network.id and (not selection or selection.green)
+end
+
 local function network_selected(selection, wire_type)
   if not selection then return true end
   if wire_type == defines.wire_type.red then
@@ -140,7 +152,10 @@ function Signal_access:new_type_match(desc, type)
   }
 end
 
-local function behavior_accesses(entity, behavior, wire_type)
+local both_selected = { red = true, green = true }
+
+local function behavior_accesses(entity, behavior, network)
+  local wire_type = network.wire_type
   local result = {}
 
   local function add_access(text, currentwrite, potentials)
@@ -323,7 +338,8 @@ local function behavior_accesses(entity, behavior, wire_type)
     local p = behavior.parameters
 
     if p then
-      if input_ok then
+      if combinator_wires_selected(p.first_signal_networks , false, entity, network) or
+         combinator_wires_selected(p.second_signal_networks, false, entity, network) then
         add_access(
           (signal_to_rich_text(p.first_signal) or p.first_constant)
             .. p.operation
@@ -332,26 +348,27 @@ local function behavior_accesses(entity, behavior, wire_type)
           Signal_access:new{
             description = "arithmetic operation",
             direct_access = {
-              network_selected(p.first_signal_networks, wire_type)
+              combinator_wires_selected(p.first_signal_networks , false, entity, network)
                 and p.first_signal,
-              network_selected(p.second_signal_networks, wire_type)
+              combinator_wires_selected(p.second_signal_networks, false, entity, network)
                 and p.second_signal
             },
             matches = function(self, s)
               return
                 (p.first_signal
-                  and network_selected(p.first_signal_networks, wire_type)
+                  and combinator_wires_selected(p.first_signal_networks , false, entity, network)
+
                   and same_signal(s, p.first_signal))
                 or
                 (p.second_signal
-                  and network_selected(p.second_signal_networks, wire_type)
+                  and combinator_wires_selected(p.second_signal_networks, false, entity, network)
                   and same_signal(s, p.second_signal))
             end
           }
         )
       end
 
-      if output_ok then
+      if combinator_wires_selected(behavior.output_networks, true, entity, network) then
         add_combinator_output("result ", p.output_signal)
       end
     end
@@ -362,8 +379,9 @@ local function behavior_accesses(entity, behavior, wire_type)
     local p = behavior.parameters
 
     if p then
-      if input_ok then
-        for i, c in pairs(p.conditions or {}) do
+      for i, c in pairs(p.conditions or {}) do
+        if combinator_wires_selected(c.first_signal_networks , false, entity, network) or
+           combinator_wires_selected(c.second_signal_networks, false, entity, network) then
           add_access(
             ((i > 1 and c.compare_type) or "first condition")
               .. (signal_to_rich_text(c.first_signal) or "N/A")
@@ -375,19 +393,19 @@ local function behavior_accesses(entity, behavior, wire_type)
             Signal_access:new{
               description = "comparison",
               direct_access = {
-                network_selected(c.first_signal_networks, wire_type)
+                combinator_wires_selected(c.first_signal_networks , false, entity, network)
                   and c.first_signal,
-                network_selected(c.second_signal_networks, wire_type)
+                combinator_wires_selected(c.second_signal_networks, false, entity, network)
                   and c.second_signal
               },
               matches = function(self, s)
                 return
                   (c.first_signal
-                    and network_selected(c.first_signal_networks, wire_type)
+                    and combinator_wires_selected(c.first_signal_networks , false, entity, network)
                     and same_signal(s, c.first_signal))
                   or
                   (c.second_signal
-                    and network_selected(c.second_signal_networks, wire_type)
+                    and combinator_wires_selected(c.second_signal_networks, false, entity, network)
                     and same_signal(s, c.second_signal))
               end
             }
@@ -395,7 +413,7 @@ local function behavior_accesses(entity, behavior, wire_type)
         end
       end
 
-      if output_ok then
+      if combinator_wires_selected(behavior.output_networks, true, entity, network) then
         for _, o in pairs(p.outputs or {}) do
           add_combinator_output("output ", o.signal)
         end
@@ -1441,12 +1459,11 @@ elseif t == defines.control_behavior.type.display_panel then
 end
 
 local function entity_roles(entity, network)
-  local readers, writers = {}, {}
   local behavior = entity.get_control_behavior()
 
-  if not behavior then return readers, writers end
+  if not behavior then return {} end
 
-  local accesses = behavior_accesses(entity, behavior, network.wire_type)
+  local accesses = behavior_accesses(entity, behavior, network)
   return accesses
 end
 

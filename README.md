@@ -19,9 +19,16 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 ### conceptual TODOs
 * how to handle mods with new entities or new control behavior?
 
+### polishing up gui
+* left part (signals) has varying width, can grow too long (robopart read network contents) and too wide
+* entity button ugly
+* list of accesses per entity is ugly
+
 ### normal work
+* combinators read & write is not correct. Treats input and output always as connected. <-- check for selector, others should be ok.
 * if a decider output (write) says "input count", that also qualifies as read!
 * click into list of current values for filter?
+* relative window vanishes if no recipe set and "set recipe [through circuit network]" is toggled
 
 ### for publishing
 * remove game.print, player.print (except one case as commented)
