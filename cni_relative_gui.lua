@@ -83,7 +83,7 @@ local entity_type_to_gui_type = {
 }
 
 function cni_relative_gui.gui_type_from_entity(entity)
-    if entity.type == "assembling-machine" and not entity.get_recipe() then
+    if entity.type == "assembling-machine" and not entity.get_recipe() and not entity.get_control_behavior().circuit_set_recipe then
         return defines.relative_gui_type.assembling_machine_select_recipe_gui
     end
     return entity_type_to_gui_type[entity.type]
