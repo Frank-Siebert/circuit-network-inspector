@@ -1627,8 +1627,6 @@ local function refresh_accesses(player, network)
     end
     if write then
       add_entity_button(right, entity, nil, "writer", options.signal, writes)
-    else
-      right.add{type="label", caption="No writing entities."}
     end
   end
 
@@ -1642,8 +1640,6 @@ local function refresh_accesses(player, network)
     end
     if read then
       add_entity_button(right, entity, nil, "reader", options.signal, reads)
-    else
-      right.add{type="label", caption="No reading entities."}
     end
   end
 end
