@@ -1559,9 +1559,11 @@ local function add_entity_button(parent, entity, network, role, selected, access
   end
 end
 
-local function refresh_options(options,enabled)
-  options.cni_literal_matching.enabled = enabled
-  options.cni_current_writes.enabled = enabled
+local function refresh_options(options_frame,state_options)
+  options_frame.signal_filter_option.cni_signal_filter.elem_value = state_options.signal
+  local enabled = state_options.signal ~= nil
+  options_frame.cni_literal_matching.enabled = enabled
+  options_frame.cni_current_writes.enabled = enabled
 end
 
 local function refresh_signals(player, network)
@@ -1658,7 +1660,7 @@ local function refresh(player)
   local frame = player.gui.screen[GUI]
   if not frame then player.print("no frame");return end
 
-  frame.options.signal_filter_option.cni_signal_filter.elem_value = state.options.signal
+  refresh_options(frame.options, state.options)
   refresh_signals(player, network)
   refresh_accesses(player, network)
 end
@@ -1757,7 +1759,7 @@ local function open_inspector(player, source, network)
   }
   options.add{name="cni_literal_matching", type="checkbox", caption="literal signal matching", tooltip="Require an exact signal match. When disabled, dynamic signals such as [virtual-signal=signal-each] match any selected signal.", state=state.options.literal_matching}
   options.add{name="cni_current_writes", type="checkbox", caption="use current writes, not potential", tooltip="Match only if there is a signal output now, instead of could be output.", state=state.options.current_writes}
-  refresh_options(options, state.options.signal ~= nil)
+  refresh_options(options, state.options)
 
   local body = frame.add{type="flow", name="body", direction="horizontal"}
   body.style.horizontally_stretchable = true
@@ -1929,8 +1931,9 @@ script.on_event(defines.events.on_gui_elem_changed, function(event)
   if event.element.name == "cni_signal_filter" then
 
     local signal = event.element.elem_value
-    storage.cni[event.player_index].options.signal = signal
-    refresh_options(event.element.parent.parent, signal ~= nil)
+    local options = storage.cni[event.player_index].options
+    options.signal = signal
+    refresh_options(event.element.parent.parent, options)
     refresh_accesses(game.get_player(event.player_index))
   end
 end)

@@ -28,7 +28,6 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 * combinators read & write is not correct. Treats input and output always as connected. <-- check for selector, others should be ok.
 * if a decider output (write) says "input count", that also qualifies as read!
 * click into list of current values for filter? <-- does not always work, due to refresh (fewer misses with lower refresh rate)
-* clicking into list does not refresh options state, e.g. enable/disable state of checkboxes
 ** re-do refresh logic? keep table of buttons, or build it up.
 * relative window vanishes if no recipe set and "set recipe [through circuit network]" is toggled
 
