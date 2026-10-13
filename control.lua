@@ -1536,7 +1536,10 @@ local function add_entity_button(parent, entity, network, role, selected, access
     description = description_full:match("^[^\r\n]*")
   end
 
-  local b = parent.add{
+  local entity_panel = parent.add{type="frame",direction="horizontal", style="train_schedule_station_frame"}
+  entity_panel.style.horizontally_stretchable = true
+
+  local b = entity_panel.add{
     type = "button",
     caption =  entity_rich_text(entity) .. description,
     tooltip = description_full,
@@ -1547,8 +1550,9 @@ local function add_entity_button(parent, entity, network, role, selected, access
       unit_number = entity.unit_number
     }
   }
+  local access_panel = entity_panel.add{type="flow", direction="vertical"}
   for _, access in pairs(accesses) do
-    parent.add({
+    access_panel.add({
       type = "label",
       caption = access.text
     })
@@ -1610,7 +1614,6 @@ local function refresh_accesses(player, network)
   if not state then return end
   if not network then network = network_from_state(state) end
   local source = unit_number_to_entity[ state.source_unit_number]
-  
   local options = state.options
 
   local entities = collect_network(source, network)
@@ -1769,7 +1772,8 @@ local function open_inspector(player, source, network)
   local right_scroll_pane = body.add{
     type = "scroll-pane",
     name = "right_scroll_pane",
-    direction = "vertical"
+    direction = "vertical",
+    style = "train_schedule_scroll_pane",
   }
 
   right_scroll_pane.style.vertically_stretchable = true
