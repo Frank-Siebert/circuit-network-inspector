@@ -1735,7 +1735,7 @@ local function open_inspector(player, source, network)
     tooltip = {"gui.close-instruction"}
   }
   frame.auto_center = true
-  frame.style.width = 800
+  frame.style.width = 820
   frame.style.height = 600
 
   local state = storage.cni and storage.cni[player.index]
@@ -1763,11 +1763,9 @@ local function open_inspector(player, source, network)
   body.style.horizontally_stretchable = true
   body.style.vertically_stretchable = true
 
-  local body = frame.body
-
   --local left = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
-  --left.style.width = 260
-  local left = body.add{name="left", type="table", column_count = 10  }
+  local left = body.add{name="left", type="table", column_count = 8  }
+  left.style.width = 260
 
   local right_scroll_pane = body.add{
     type = "scroll-pane",
@@ -1775,6 +1773,7 @@ local function open_inspector(player, source, network)
     direction = "vertical",
     style = "train_schedule_scroll_pane",
   }
+  right_scroll_pane.style.width = 520
 
   right_scroll_pane.style.vertically_stretchable = true
   right_scroll_pane.style.horizontally_stretchable = true
