@@ -241,11 +241,11 @@ local function behavior_accesses(entity, behavior, network)
 
   -- For combinators: their actual output is directly exposed by
   -- signals_last_tick.
-  local function add_combinator_output(text, signal)
+  local function add_combinator_output(text, signal, value)
     local current = current_signals(behavior.signals_last_tick)
 
     add_access(
-      text .. (signal_to_rich_text(signal) or "N/A"),
+      text .. (signal_to_rich_text(signal) or "N/A") .. (value or ""),
       current,
       Signal_access:new_single("output", signal)
     )
@@ -415,11 +415,11 @@ local function behavior_accesses(entity, behavior, network)
 
       if combinator_wires_selected(behavior.output_networks, true, entity, network) then
         for _, o in pairs(p.outputs or {}) do
-          add_combinator_output("output ", o.signal)
+          add_combinator_output("output ", o.signal, not o.copy_count_from_input and (o.constant or "1"))
         end
 
         for _, o in pairs(p.else_outputs or {}) do
-          add_combinator_output("else ", o.signal)
+          add_combinator_output("else ",   o.signal, not o.copy_count_from_input and (o.constant or "1"))
         end
       end
     end
