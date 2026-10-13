@@ -1575,7 +1575,12 @@ local function refresh_signals(player, network)
   --end)
   clear_children(left)
   for _, s in pairs(signals) do
-    left.add(Button_Signal(s))
+    left.add(Button_Signal(s, {
+        cni_action = "filter_signal",
+        signal_type = s.signal.type,
+        signal_name = s.signal.name,
+        signal_quality = s.signal.quality,
+    }))
   end
 end
 
@@ -1654,6 +1659,7 @@ local function refresh(player)
   local frame = player.gui.screen[GUI]
   if not frame then player.print("no frame");return end
 
+  frame.options.signal_filter_option.cni_signal_filter.elem_value = state.options.signal
   refresh_signals(player, network)
   refresh_accesses(player, network)
 end
@@ -1891,7 +1897,7 @@ script.on_event(defines.events.on_gui_click, function(event)
       player.print("No circuit network found.")
     end
 
-  elseif action == "filter_signal" then -- currently dead, no such action
+  elseif action == "filter_signal" then
     local state = storage.cni and storage.cni[player.index]
     if state then
       state.options.signal = {

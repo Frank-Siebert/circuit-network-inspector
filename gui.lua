@@ -27,7 +27,7 @@ local const = {
     }
 }
 
-function Button_Signal(signal)
+function Button_Signal(signal, tags)
     local signal_id_type = { -- https://lua-api.factorio.com/latest/concepts/SignalIDType.html
         virtual = 'virtual_signal',
         ['space-location'] = 'space_location',
@@ -62,6 +62,7 @@ function Button_Signal(signal)
         style = network_styles[i],
         tooltip = signal.count,-- prototypes[prototype_name][signal_name].localised_name,
         quality = signal.signal.quality,
+        tags = tags,
     }
 
     local gui_quality
