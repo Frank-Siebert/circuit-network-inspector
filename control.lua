@@ -152,6 +152,12 @@ function Signal_access:new_type_match(desc, type)
   }
 end
 
+function Signal_access:write_item_or_fluid(desc)
+  return Signal_access:new{description = desc,
+    matches = function (self, s) return (s.type == nil) or (s.type == "fluid") end
+  }
+end
+
 local both_selected = { red = true, green = true }
 
 local function behavior_accesses(entity, behavior, network)
@@ -802,7 +808,7 @@ local function behavior_accesses(entity, behavior, network)
       add_access(
         "read recipe ingredients",
         nil,
-        Signal_access:new_type_match("recipe ingredients", "item") -- TODO can also be liquids
+        Signal_access:write_item_or_fluid("recipe ingredients")
       )
     end
 
@@ -1008,7 +1014,7 @@ local function behavior_accesses(entity, behavior, network)
       add_access(
         "read train contents",
         {},
-        Signal_access:new_type_match("train contents", "item")
+        Signal_access:write_item_or_fluid("recipe ingredients")
       )
     end
 
