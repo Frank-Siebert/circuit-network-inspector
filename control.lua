@@ -192,10 +192,10 @@ local function behavior_accesses(entity, behavior, network)
     )
   end
 
-  local function add_type_read(text, type)
+  local function add_type_read(text, type, currentwrite)
     add_access(
       text,
-      nil,
+      currentwrite,
       Signal_access:new_type_match("any " .. type, type)
     )
   end
@@ -979,7 +979,8 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if output_ok and behavior.read_items_mode then
-      add_type_read("read roboport contents ", "item")
+      -- TODO read real logistic network contents?
+      add_type_read("read roboport contents ", "item", {})
     end
 
 
