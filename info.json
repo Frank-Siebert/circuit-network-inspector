@@ -1,9 +1,9 @@
 {
   "name": "circuit-network-inspector",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "title": "Circuit Network Inspector",
   "author": "Frank Siebert",
   "homepage": "https://github.com/Frank-Siebert/circuit-network-inspector",
   "factorio_version": "2.1",
-  "description": "Minimal inspector for circuit networks: shows signals and connected readers/writers."
+  "description": "Open an entity GUI that has circuit connections. The mod adds a small `ⓘ` button next to Factorio's additional-entity-info area. Clicking it opens a circuit-network inspector."
 }
