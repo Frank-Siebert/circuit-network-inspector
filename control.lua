@@ -726,12 +726,17 @@ local function behavior_accesses(entity, behavior, network)
   --------------------------------------------------------------------------
 
   elseif t == defines.control_behavior.type.accumulator then
+    local charge= "?"
+    if entity.electric_networks and entity.electric_networks[1] then
+      charge = entity.electric_networks[1].get_accumulators_energy{}
+      charge = charge.energy * 100 / charge.capacity
+    end
 
     if output_ok and behavior.read_charge then
       add_set(
         "read charge ",
         behavior.output_signal,
-        entity.energy / entity.electric_buffer_size * 100 -- TODO most likely wrong. internal buffer ~= accumulator load
+        charge
       )
     end
 
@@ -940,7 +945,7 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if input_ok and behavior.set_research then
-      for _, research_condition in pairs(behavior.research_conditions or {}) do
+      for _, research_condition in ipairs(behavior.research_conditions or {}) do
         add_comparison("research " .. (research_condition.name or "N/A") .. " when", research_condition.condition)
       end
     end
