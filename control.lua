@@ -1466,6 +1466,20 @@ elseif t == defines.control_behavior.type.display_panel then
         }
       )
     end
+
+    if output_ok and behavior.read_moving_to then
+      add_access(
+        "read moving-to connection",
+        {},
+        Signal_access:new{
+          description = "platform connection signal",
+          direct_access = nil,
+          matches = function(self, s) -- TODO planetary signal. Discover? So mods with new planets also work?
+            return true
+          end
+        }
+      )
+    end
   end
 
   return result
