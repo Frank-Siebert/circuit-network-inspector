@@ -1166,7 +1166,8 @@ local function behavior_accesses(entity, behavior, network)
     if output_ok and behavior.read_content then
       add_inventory_contents(
         "read contents ",
-        entity.get_inventory(defines.inventory.asteroid_collector)
+        entity.get_inventory(defines.inventory.asteroid_collector_output)
+        -- TODO add defines.inventory.asteroid_collector_arm if arm included
       )
     end
 
