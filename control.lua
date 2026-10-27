@@ -1390,7 +1390,7 @@ elseif t == defines.control_behavior.type.display_panel then
       for _, record in pairs(behavior.records) do
         if record.condition then
           add_comparison(
-            (signal_to_rich_text(record.icon) or "N/A") .. "message:" .. record.text .. " condition: ",
+            (signal_to_rich_text(record.icon) or "no icon") .. " message: " .. (record.text or "not set") .. " condition: ",
             record.condition
           )
         end
