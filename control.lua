@@ -1457,13 +1457,7 @@ elseif t == defines.control_behavior.type.display_panel then
       add_access(
         "read moving-from connection",
         {},
-        Signal_access:new{
-          description = "platform connection signal",
-          direct_access = nil,
-          matches = function(self, s)
-            return true
-          end
-        }
+        Signal_access:new_type_match("platform connection signal","space-location")
       )
     end
 
@@ -1471,13 +1465,7 @@ elseif t == defines.control_behavior.type.display_panel then
       add_access(
         "read moving-to connection",
         {},
-        Signal_access:new{
-          description = "platform connection signal",
-          direct_access = nil,
-          matches = function(self, s) -- TODO planetary signal. Discover? So mods with new planets also work?
-            return true
-          end
-        }
+        Signal_access:new_type_match("platform connection signal","space-location")
       )
     end
   end
