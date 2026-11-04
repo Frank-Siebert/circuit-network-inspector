@@ -1744,6 +1744,24 @@ local function open_inspector(player, source, network)
 
   titlebar.add{
     type = "sprite-button",
+    name = "cni_previous",
+    style = "frame_action_button",
+    sprite = "utility/backward_arrow",
+    --hovered_sprite = "utility/backward_arrow_black",
+    --clicked_sprite = "utility/backward_arrow_black",
+    tooltip = {"gui.close-instruction"}
+  }
+  titlebar.add{
+    type = "sprite-button",
+    name = "cni_next",
+    style = "frame_action_button",
+    sprite = "utility/forward_arrow",
+    --hovered_sprite = "utility/forward_arrow_black",
+    --clicked_sprite = "utility/forward_arrow_black",
+    tooltip = {"gui.close-instruction"}
+  }
+  titlebar.add{
+    type = "sprite-button",
     name = "cni_close",
     style = "frame_action_button",
     sprite = "utility/close",
