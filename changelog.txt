@@ -1,0 +1,6 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 2026.11.dd
+  Modding:
+    - Use better thumbnail for circuit network inspector.
+
