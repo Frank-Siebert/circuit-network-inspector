@@ -6,6 +6,11 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 
 
 ## TODOs:
+* change to have tabs?
+** tab 1: signals on wire
+** tab 2: the current detail view with write / read access
+** tab 3: "neighboring" networks
+* alternatively: main view with 5 colummns. Center: current signals on wire. 4: where to signal are written to (i.e. network readers) 5: outgoing networks. 1, 2 mirroring, 2 network writes 1. imcoming networks.
 
 ### conceptual TODOs
 * how to handle mods with new entities or new control behavior?

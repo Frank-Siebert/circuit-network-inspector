@@ -1551,7 +1551,7 @@ local function add_entity_button(parent, entity, network, role, selected, access
     description = description_full:match("^[^\r\n]*")
   end
 
-  local entity_panel = parent.add{type="frame",direction="horizontal", style="train_schedule_station_frame"}
+  local entity_panel = parent.add{type="frame",direction="horizontal", style="cni_forward_frame"}
   entity_panel.style.horizontally_stretchable = true
 
   local b = entity_panel.add{
