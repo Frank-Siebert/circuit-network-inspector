@@ -162,10 +162,19 @@ local both_selected = { red = true, green = true }
 
 local function behavior_accesses(entity, behavior, network)
   local wire_type = network.wire_type
-  local result = {}
+  local result = { reads = {}, writes = {} }
 
-  local function add_access(text, currentwrite, potentials)
-    table.insert(result,
+  local function add_read(text, potentials)
+    table.insert(result.reads,
+    {
+      text = text,
+      currentwrite = nil,
+      dynamic_potentials = potentials,
+    })
+  end
+
+  local function add_write(text, currentwrite, potentials)
+    table.insert(result.writes,
     {
       text = text,
       currentwrite = currentwrite, -- nil: read, {} or more: write
@@ -182,7 +191,7 @@ local function behavior_accesses(entity, behavior, network)
       })
     end
 
-    add_access(
+    add_write(
       text .. (signal_to_rich_text(signal) or "N/A")
         .. " = " .. (value or "(not set)"),
       write_contribution,
@@ -191,32 +200,37 @@ local function behavior_accesses(entity, behavior, network)
   end
 
   local function add_simple_read(text, signal)
-    add_access(
+    add_read(
       text,
-      nil,
       Signal_access:new_single("read a value", signal)
     )
   end
 
-  local function add_type_read(text, type, currentwrite)
-    add_access(
-      text,
-      currentwrite,
-      Signal_access:new_type_match("any " .. type, type)
-    )
+  local function add_type_read(text, type, currentwrite) -- TODO function name wrong, "read"
+    if currentwrite then
+      add_write(
+        text,
+        currentwrite,
+        Signal_access:new_type_match("any " .. type, type)
+      )
+    else
+      add_read(
+        text,
+        Signal_access:new_type_match("any " .. type, type)
+      )
+    end
   end
 
   local function add_comparison(text, circuit_condition)
     if not circuit_condition then return end
 
-    add_access(
+    add_read(
       text
         .. (signal_to_rich_text(circuit_condition.first_signal) or "N/A")
         .. (circuit_condition.comparator or "<")
         .. (signal_to_rich_text(circuit_condition.second_signal)
             or circuit_condition.constant
             or "N/A"),
-      nil,
       Signal_access:new{
         description = "comparison",
         direct_access = {
@@ -250,7 +264,7 @@ local function behavior_accesses(entity, behavior, network)
   local function add_combinator_output(text, signal, value)
     local current = current_signals(behavior.signals_last_tick)
 
-    add_access(
+    add_write(
       text .. (signal_to_rich_text(signal) or "N/A") .. (value or ""),
       current,
       Signal_access:new_single("output", signal)
@@ -273,7 +287,7 @@ local function behavior_accesses(entity, behavior, network)
       end
     end
 
-    add_access(
+    add_write(
       text,
       current,
       Signal_access:new_type_match("any item", "item")
@@ -298,7 +312,7 @@ local function behavior_accesses(entity, behavior, network)
       end
     end
 
-    add_access(
+    add_write(
       text,
       current,
       Signal_access:new_type_match("any item", "item")
@@ -307,7 +321,7 @@ local function behavior_accesses(entity, behavior, network)
 
   -- Add all signals currently emitted by a combinator.
   local function add_combinator_all_outputs(text)
-    add_access(
+    add_write(
       text,
       current_signals(behavior.signals_last_tick),
       Signal_access:new_type_match("any signal", "virtual")
@@ -346,11 +360,10 @@ local function behavior_accesses(entity, behavior, network)
     if p then
       if combinator_wires_selected(p.first_signal_networks , false, entity, network) or
          combinator_wires_selected(p.second_signal_networks, false, entity, network) then
-        add_access(
+        add_read(
           (signal_to_rich_text(p.first_signal) or p.first_constant)
             .. p.operation
             .. (signal_to_rich_text(p.second_signal) or p.second_constant),
-          nil,
           Signal_access:new{
             description = "arithmetic operation",
             direct_access = {
@@ -388,14 +401,13 @@ local function behavior_accesses(entity, behavior, network)
       for i, c in pairs(p.conditions or {}) do
         if combinator_wires_selected(c.first_signal_networks , false, entity, network) or
            combinator_wires_selected(c.second_signal_networks, false, entity, network) then
-          add_access(
+          add_read(
             ((i > 1 and c.compare_type) or "first condition")
               .. (signal_to_rich_text(c.first_signal) or "N/A")
               .. c.comparator
               .. (signal_to_rich_text(c.second_signal)
                   or c.constant
                   or "N/A"),
-            nil,
             Signal_access:new{
               description = "comparison",
               direct_access = {
@@ -447,9 +459,8 @@ local function behavior_accesses(entity, behavior, network)
 
         -- select operates on arbitrary signals on the input network.
         add_type_read("select ", "item")
-        add_access(
+        add_read(
           "select input signal",
-          nil,
           Signal_access:new{
             description = "select input signal",
             direct_access = nil,
@@ -461,9 +472,8 @@ local function behavior_accesses(entity, behavior, network)
 
       elseif operation == "count" then
 
-        add_access(
+        add_read(
           "count signals",
-          nil,
           Signal_access:new{
             description = "count input signals",
             direct_access = nil,
@@ -475,9 +485,8 @@ local function behavior_accesses(entity, behavior, network)
 
       elseif operation == "random" then
 
-        add_access(
+        add_read(
           "random input signal",
-          nil,
           Signal_access:new{
             description = "random input signal",
             direct_access = nil,
@@ -489,9 +498,8 @@ local function behavior_accesses(entity, behavior, network)
 
       elseif operation == "quality-filter" then
 
-        add_access(
+        add_read(
           "quality filter",
-          nil,
           Signal_access:new{
             description = "quality filter",
             direct_access = nil,
@@ -519,9 +527,9 @@ local function behavior_accesses(entity, behavior, network)
 
       elseif operation == "time" then
 
-        add_access(
+        add_write(
           "game/day tick signals",
-          nil,
+          {},
           Signal_access:new{
             description = "time signal",
             direct_access = {
@@ -538,7 +546,7 @@ local function behavior_accesses(entity, behavior, network)
     if p and output_ok then
       -- The selector combinator has one output whose exact signal depends
       -- on the selected operation/input.
-      add_access(
+      add_write(
         "selector output",
         current_signals(behavior.signals_last_tick),
         Signal_access:new{
@@ -574,7 +582,7 @@ local function behavior_accesses(entity, behavior, network)
         end
       end
 
-      add_access(
+      add_write(
         "constant signals",
         current,
         Signal_access:new{
@@ -624,9 +632,8 @@ local function behavior_accesses(entity, behavior, network)
       end
 
       if input_ok and behavior.set_requests then
-        add_access(
+        add_read(
           "set requests",
-          nil,
           Signal_access:new_type_match("any item", "item")
         )
       end
@@ -664,7 +671,7 @@ local function behavior_accesses(entity, behavior, network)
         })
       end
 
-      add_access(
+      add_write(
         fluid
           and ("read fluid, currently "
             .. string.format("%s [fluid=%s]",
@@ -691,9 +698,8 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if input_ok and behavior.circuit_set_filters then
-      add_access(
+      add_read(
         "set filters",
-        nil,
         Signal_access:new_type_match("any item", "item")
       )
     end
@@ -713,7 +719,7 @@ local function behavior_accesses(entity, behavior, network)
         })
       end
 
-      add_access(
+      add_write(
         "read hand contents ",
         current,
         Signal_access:new_type_match("any item", "item")
@@ -767,7 +773,7 @@ local function behavior_accesses(entity, behavior, network)
         end
       end
 
-      add_access(
+      add_write(
         "read belt contents ",
         current,
         Signal_access:new_type_match("any item", "item")
@@ -782,9 +788,8 @@ local function behavior_accesses(entity, behavior, network)
   elseif t == defines.control_behavior.type.assembling_machine then
 
     if input_ok and behavior.circuit_set_recipe then
-      add_access(
+      add_read(
         "set recipe",
-        nil,
         Signal_access:new_type_match("any recipe item", "item")
       )
     end
@@ -810,9 +815,8 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if output_ok and behavior.circuit_read_ingredients then
-      add_access(
+      add_read(
         "read recipe ingredients",
-        nil,
         Signal_access:write_item_or_fluid("recipe ingredients")
       )
     end
@@ -860,9 +864,8 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if output_ok and behavior.circuit_read_ingredients then
-      add_access(
+      add_read(
         "read recipe ingredients",
-        nil,
         Signal_access:new_type_match("recipe ingredients", "item")
       )
     end
@@ -906,7 +909,7 @@ local function behavior_accesses(entity, behavior, network)
         end
       end
 
-      add_access(
+      add_write(
         "read resources ",
         current,
         Signal_access:new_type_match("any resource", "item")
@@ -1002,9 +1005,8 @@ local function behavior_accesses(entity, behavior, network)
   elseif t == defines.control_behavior.type.train_stop then
 
     if input_ok and behavior.send_to_train then
-      add_access(
+      add_read(
         "send signals to train",
-        nil,
         Signal_access:new{
           description = "train schedule signals",
           direct_access = nil,
@@ -1016,7 +1018,7 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if output_ok and behavior.read_from_train then
-      add_access(
+      add_write(
         "read train contents",
         {},
         Signal_access:write_item_or_fluid("recipe ingredients")
@@ -1082,9 +1084,8 @@ local function behavior_accesses(entity, behavior, network)
   elseif t == defines.control_behavior.type.lamp then
 
     if input_ok and behavior.use_colors then
-      add_access(
+      add_read(
         "set color",
-        nil,
         Signal_access:new{
           description = "lamp color signals",
           direct_access = {
@@ -1107,7 +1108,7 @@ local function behavior_accesses(entity, behavior, network)
     if input_ok and behavior.universe_channel then
       add_simple_read(
         "universe channel ",
-        behavior.universe_channel
+        behavior.universe_channel -- TODO wrong
       )
     end
 
@@ -1125,7 +1126,7 @@ local function behavior_accesses(entity, behavior, network)
           entity.get_inventory(defines.inventory.rocket_silo_rocket)
         )
       elseif behavior.read_mode == defines.control_behavior.rocket_silo.read_mode.orbital_requests then
-        add_access(
+        add_write(
           "read orbital requests ",
           {},
           Signal_access:new_type_match("any item", "item")
@@ -1172,7 +1173,7 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if output_ok and behavior.include_hands then
-      add_access(
+      add_write(
         "read captured asteroids ",
         {},
         Signal_access:new_type_match("any item", "item")
@@ -1180,9 +1181,8 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if input_ok and behavior.set_filter then
-      add_access(
+      add_read(
         "set asteroid filter",
-        nil,
         Signal_access:new_type_match("any asteroid", "item")
       )
     end
@@ -1224,15 +1224,14 @@ local function behavior_accesses(entity, behavior, network)
   elseif t == defines.control_behavior.type.loader then
 
     if input_ok and behavior.circuit_set_filters then
-      add_access(
+      add_read(
         "set loader filters",
-        nil,
         Signal_access:new_type_match("any item", "item")
       )
     end
 
     if output_ok and behavior.circuit_read_transfers then
-      add_access(
+      add_write(
         "read transfers",
         {},
         Signal_access:new_type_match("any item", "item")
@@ -1270,9 +1269,8 @@ local function behavior_accesses(entity, behavior, network)
       end
 
       if behavior.set_filter then
-        add_access(
+        add_read(
           "set splitter filter",
-          nil,
           Signal_access:new_type_match("any item", "item")
         )
       end
@@ -1286,9 +1284,8 @@ local function behavior_accesses(entity, behavior, network)
   elseif t == defines.control_behavior.type.pump then
 
     if input_ok and behavior.set_filter then
-      add_access(
+      add_read(
         "set fluid filter",
-        nil,
         Signal_access:new_type_match("any fluid", "fluid")
       )
     end
@@ -1318,7 +1315,7 @@ local function behavior_accesses(entity, behavior, network)
       end
 
       if behavior.set_priority_list then
-        add_access("target priority list: ", nil,
+        add_read("target priority list: ",
           Signal_access:new{
             description = "enemy target signals",
             matches = function(self, s)
@@ -1329,9 +1326,9 @@ local function behavior_accesses(entity, behavior, network)
     end
 
     if output_ok and behavior.read_ammo then
-      add_access("ammunition contents: ", {},
+      add_write("ammunition contents: ", {},
         Signal_access:new_type_match("item ammunition", "item")
-        --,Signal_access:new_type_match("fluid ammunition", "fluid")
+        --,Signal_access:new_type_match("fluid ammunition", "fluid") -- TODO
       )
     end
   --------------------------------------------------------------------------
@@ -1432,7 +1429,7 @@ elseif t == defines.control_behavior.type.display_panel then
     end
 
     if input_ok and behavior.set_requests then
-      add_access(
+      add_read(
         "set platform requests",
         nil,
         Signal_access:new_type_match("any item", "item")
@@ -1440,9 +1437,8 @@ elseif t == defines.control_behavior.type.display_panel then
     end
 
     if input_ok and behavior.send_to_platform then
-      add_access(
+      add_read(
         "send signals to platform schedule",
-        nil,
         Signal_access:new{
           description = "platform schedule signals",
           direct_access = nil,
@@ -1454,7 +1450,7 @@ elseif t == defines.control_behavior.type.display_panel then
     end
 
     if output_ok and behavior.read_moving_from then
-      add_access(
+      add_write(
         "read moving-from connection",
         {},
         Signal_access:new_type_match("platform connection signal","space-location")
@@ -1462,7 +1458,7 @@ elseif t == defines.control_behavior.type.display_panel then
     end
 
     if output_ok and behavior.read_moving_to then
-      add_access(
+      add_write(
         "read moving-to connection",
         {},
         Signal_access:new_type_match("platform connection signal","space-location")
@@ -1642,7 +1638,7 @@ local function refresh_accesses(player, network)
   for _, entity in pairs(entities) do
     local write = false
     local writes = {}
-    for _,a in ipairs(entity_roles(entity, network)) do
+    for _,a in ipairs(entity_roles(entity, network).writes) do
       if is_access(a,options,true) then write = true; table.insert(writes,a) end
     end
     if write then
@@ -1655,7 +1651,7 @@ local function refresh_accesses(player, network)
   for _, entity in pairs(entities) do
     local read = false
     local reads = {}
-    for _,a in ipairs(entity_roles(entity, network)) do
+    for _,a in ipairs(entity_roles(entity, network).reads) do
       if is_access(a,options,false) then read = true; table.insert(reads, a) end
     end
     if read then
