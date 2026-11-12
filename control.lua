@@ -1584,7 +1584,7 @@ local function refresh_signals(player, network)
   if not network then network = network_from_state(state) end
   if not network then player.print("did you just load a game?"); return end
 
-  local signal_gui  = player.gui.screen[GUI].scroll_pane.body.signal_gui
+  local signal_gui  = player.gui.screen[GUI].scroll_pane.body.signal_gui_frame.signal_gui
 
   local signals = network.network.signals or {}
   --table.sort(signals, function(a,b)
@@ -1809,8 +1809,9 @@ local function open_inspector(player, source, network)
   writer_gui.style.vertically_stretchable = true
   writer_gui.style.horizontally_stretchable = true
 
-  --local signal_gui = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
-  local signal_gui = body.add{name="signal_gui", type="table", column_count = 3  }
+  local signal_gui_frame = body.add{name="signal_gui_frame", type="frame", direction="vertical", style="inside_shallow_frame"}
+  signal_gui_frame.style.vertically_stretchable = true
+  local signal_gui = signal_gui_frame.add{name="signal_gui", type="table", column_count = 3, style = "compact_slot_table"  }
   signal_gui.style.width = 130
 
   local reader_gui = body.add{name="reader_gui", type = "flow", direction="vertical"}
