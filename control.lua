@@ -1559,7 +1559,7 @@ local function add_entity_button(parent, entity, network, role, selected, access
       unit_number = entity.unit_number
     }
   }
-  local ep = entity_panel.add{type="entity-preview"}
+  local ep = entity_panel.add{type="camera", position=entity.position, zoom = 2}
   ep.visible = true
   ep.entity=entity -- Rseding91: "Assignment on creation isn't supported and never will be." https://forums.factorio.com/viewtopic.php?p=346036#p346036
   ep.style.width = 64
