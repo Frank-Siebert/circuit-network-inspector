@@ -1604,12 +1604,14 @@ local function refresh_signals(player, network)
   --end)
   clear_children(signal_gui)
   for _, s in pairs(signals) do
-    signal_gui.add(Button_Signal(s, {
+    local bs = signal_gui.add(Button_Signal(s, {
         cni_action = "filter_signal",
         signal_type = s.signal.type,
         signal_name = s.signal.name,
         signal_quality = s.signal.quality,
-    }))
+    }, 1))
+    bs.style.margin = 0
+    bs.style.padding = 0
   end
 end
 
@@ -1826,9 +1828,12 @@ local function open_inspector(player, source, network)
   writer_gui.style.vertically_stretchable = true
   writer_gui.style.horizontally_stretchable = true
 
-  local signal_gui_frame = body.add{name="signal_gui_frame", type="frame", direction="vertical", style="inside_shallow_frame"}
+  local signal_gui_frame = body.add{name="signal_gui_frame", type="scroll-pane", direction="vertical", style="logistic_sections_scroll_pane"}
   signal_gui_frame.style.vertically_stretchable = true
-  local signal_gui = signal_gui_frame.add{name="signal_gui", type="table", column_count = 3, style = "compact_slot_table"  }
+  signal_gui_frame.style.extra_padding_when_activated = 0
+  signal_gui_frame.style.extra_margin_when_activated = 0
+  local signal_gui = signal_gui_frame.add{name="signal_gui", type="table", column_count = 10, style = "compact_slot_table"  }
+  signal_gui.style.cell_padding = 0
   signal_gui.style.width = width * 0.2
 
   local reader_gui = body.add{name="reader_gui", type = "flow", direction="vertical"}

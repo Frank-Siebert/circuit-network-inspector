@@ -27,7 +27,7 @@ local const = {
     }
 }
 
-function Button_Signal(signal, tags)
+function Button_Signal(signal, tags, i)
     local signal_id_type = { -- https://lua-api.factorio.com/latest/concepts/SignalIDType.html
         virtual = 'virtual_signal',
         ['space-location'] = 'space_location',
