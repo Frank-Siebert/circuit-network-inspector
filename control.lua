@@ -1472,8 +1472,6 @@ end
 local function entity_roles(entity, network)
   local behavior = entity.get_control_behavior()
 
-  if not behavior then return {} end
-
   local accesses = behavior_accesses(entity, behavior, network)
   return accesses
 end
