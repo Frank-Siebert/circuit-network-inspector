@@ -1564,6 +1564,11 @@ local function add_entity_button(parent, entity, network, role, selected, access
   ep.entity=entity -- Rseding91: "Assignment on creation isn't supported and never will be." https://forums.factorio.com/viewtopic.php?p=346036#p346036
   ep.style.width = 64
   ep.style.height = 64
+  ep.tags = {
+    cni_action = "entity",
+    unit_number = entity.unit_number
+  }
+
   local access_panel = entity_panel.add{type="flow", direction="vertical"}
   for _, access in pairs(accesses) do
     access_panel.add({
