@@ -1771,8 +1771,10 @@ local function open_inspector(player, source, network)
     tooltip = {"gui.close-instruction"}
   }
   frame.auto_center = true
-  frame.style.width = 820
-  frame.style.height = 600
+  local scale = player.display_scale
+  local width        = math.floor(player.display_resolution.width  * 0.8 / scale)
+  frame.style.width  = width
+  frame.style.height = math.floor(player.display_resolution.height * 0.8 / scale)
 
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
@@ -1801,24 +1803,27 @@ local function open_inspector(player, source, network)
     direction = "vertical",
     style = "train_schedule_scroll_pane",
   }
-  scroll_pane.style.width = 790
+  width = width - 24
+  scroll_pane.style.width = width
+  --scroll_pane.style.horizontally_stretchable = true
+  width = width - 16
 
   local body = scroll_pane.add{type="flow", name="body", direction="horizontal"}
   body.style.horizontally_stretchable = true
   body.style.vertically_stretchable = true
 
   local writer_gui = body.add{name="writer_gui", type = "flow", direction="vertical"}
-  writer_gui.style.width = 315
+  writer_gui.style.width = width * 0.4
   writer_gui.style.vertically_stretchable = true
   writer_gui.style.horizontally_stretchable = true
 
   local signal_gui_frame = body.add{name="signal_gui_frame", type="frame", direction="vertical", style="inside_shallow_frame"}
   signal_gui_frame.style.vertically_stretchable = true
   local signal_gui = signal_gui_frame.add{name="signal_gui", type="table", column_count = 3, style = "compact_slot_table"  }
-  signal_gui.style.width = 130
+  signal_gui.style.width = width * 0.2
 
   local reader_gui = body.add{name="reader_gui", type = "flow", direction="vertical"}
-  reader_gui.style.width = 315
+  reader_gui.style.width = width * 0.4
   reader_gui.style.vertically_stretchable = true
   reader_gui.style.horizontally_stretchable = true
 
