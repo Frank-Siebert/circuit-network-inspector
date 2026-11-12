@@ -162,7 +162,7 @@ local both_selected = { red = true, green = true }
 
 local function behavior_accesses(entity, behavior, network)
   local wire_type = network.wire_type
-  local result = { reads = {}, writes = {} }
+  local result = { entity = entity, reads = {}, writes = {} }
 
   local function add_read(text, potentials)
     table.insert(result.reads,
@@ -1584,7 +1584,7 @@ local function refresh_signals(player, network)
   if not network then network = network_from_state(state) end
   if not network then player.print("did you just load a game?"); return end
 
-  local signal_gui  = player.gui.screen[GUI].body.signal_gui
+  local signal_gui  = player.gui.screen[GUI].scroll_pane.body.signal_gui
 
   local signals = network.network.signals or {}
   --table.sort(signals, function(a,b)
@@ -1631,10 +1631,10 @@ local function refresh_accesses(player, network)
 
   local entities = collect_network(source, network)
 
-  local right = player.gui.screen[GUI].body.right_scroll_pane.accesses
-  clear_children(right)
+  local writer_gui = player.gui.screen[GUI].scroll_pane.body.writer_gui
+  clear_children(writer_gui)
 
-  right.add{type="label", caption="WRITERS", tooltip="entities writing to the network (reading from entity)"}
+  writer_gui.add{type="label", caption="WRITERS", tooltip="entities writing to the network (reading from entity)"}
   for _, entity in pairs(entities) do
     local write = false
     local writes = {}
@@ -1642,12 +1642,14 @@ local function refresh_accesses(player, network)
       if is_access(a,options,true) then write = true; table.insert(writes,a) end
     end
     if write then
-      add_entity_button(right, entity, nil, "writer", options.signal, writes)
+      add_entity_button(writer_gui, entity, nil, "writer", options.signal, writes)
     end
   end
 
-  right.add{type="line"}
-  right.add{type="label", caption="READERS", tooltip="entities reading from the network (writing to entity)"}
+  local reader_gui = player.gui.screen[GUI].scroll_pane.body.reader_gui
+  clear_children(reader_gui)
+
+  reader_gui.add{type="label", caption="READERS", tooltip="entities reading from the network (writing to entity)"}
   for _, entity in pairs(entities) do
     local read = false
     local reads = {}
@@ -1655,7 +1657,7 @@ local function refresh_accesses(player, network)
       if is_access(a,options,false) then read = true; table.insert(reads, a) end
     end
     if read then
-      add_entity_button(right, entity, nil, "reader", options.signal, reads)
+      add_entity_button(reader_gui, entity, nil, "reader", options.signal, reads)
     end
   end
 end
@@ -1790,30 +1792,31 @@ local function open_inspector(player, source, network)
   options.add{name="cni_current_writes", type="checkbox", caption="use current writes, not potential", tooltip="Match only if there is a signal output now, instead of could be output.", state=state.options.current_writes}
   refresh_options(options, state.options)
 
-  local body = frame.add{type="flow", name="body", direction="horizontal"}
-  body.style.horizontally_stretchable = true
-  body.style.vertically_stretchable = true
-
-  --local signal_gui = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
-  local signal_gui = body.add{name="signal_gui", type="table", column_count = 8  }
-  signal_gui.style.width = 260
-
-  local right_scroll_pane = body.add{
+  local scroll_pane = frame.add{
     type = "scroll-pane",
-    name = "right_scroll_pane",
+    name = "scroll_pane",
     direction = "vertical",
     style = "train_schedule_scroll_pane",
   }
-  right_scroll_pane.style.width = 520
+  scroll_pane.style.width = 790
 
-  right_scroll_pane.style.vertically_stretchable = true
-  right_scroll_pane.style.horizontally_stretchable = true
+  local body = scroll_pane.add{type="flow", name="body", direction="horizontal"}
+  body.style.horizontally_stretchable = true
+  body.style.vertically_stretchable = true
 
-  right_scroll_pane.add{
-    type = "flow",
-    name = "accesses",
-    direction = "vertical"
-  }
+  local writer_gui = body.add{name="writer_gui", type = "flow", direction="vertical"}
+  writer_gui.style.width = 315
+  writer_gui.style.vertically_stretchable = true
+  writer_gui.style.horizontally_stretchable = true
+
+  --local signal_gui = body.add{type="frame", direction="vertical", style="inside_shallow_frame"}
+  local signal_gui = body.add{name="signal_gui", type="table", column_count = 3  }
+  signal_gui.style.width = 130
+
+  local reader_gui = body.add{name="reader_gui", type = "flow", direction="vertical"}
+  reader_gui.style.width = 315
+  reader_gui.style.vertically_stretchable = true
+  reader_gui.style.horizontally_stretchable = true
 
   refresh(player)
 end
