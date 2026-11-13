@@ -13,7 +13,6 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 * how to handle mods with new entities or new control behavior?
 
 ### polishing up gui
-* signal column is always green, should depend on inspected wire
 * description for combinators is gone now, must be displayed again
 * align readers and writers
 * list of accesses per entity is ugly

@@ -1683,7 +1683,7 @@ local function refresh_signals(player, network)
         signal_type = s.signal.type,
         signal_name = s.signal.name,
         signal_quality = s.signal.quality,
-    }, 1))
+    }, (state.wire_type == defines.wire_type.green) and 1 or 2))
   end
 end
 
