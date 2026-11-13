@@ -1626,6 +1626,7 @@ local function add_entity_button(parent, entity, entity_roles, role, selected, a
   }
 
   local access_panel = entity_panel.add{type="flow", direction="vertical"}
+  access_panel.style.horizontally_stretchable = true
   for _, access in pairs(accesses) do
     access_panel.add({
       type = "label",
