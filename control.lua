@@ -1532,7 +1532,24 @@ local function entity_rich_text(entity)
     )
 end
 
-local function add_entity_button(parent, entity, network, role, selected, accesses)
+-- only used in gui.
+local function network_to_text(network)
+  if network.wire_connector_id == defines.wire_connector_id.circuit_red then
+     return "[item=red-wire] " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.circuit_green then
+     return "[item=green-wire] " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.combinator_input_red then
+     return "[item=red-wire] input " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.combinator_input_green then
+     return "[item=green-wire] input " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.combinator_output_red then
+     return "[item=red-wire] out " .. network.id
+  elseif network.wire_connector_id == defines.wire_connector_id.combinator_output_green then
+     return "[item=green-wire] out " .. network.id
+  end
+end
+
+local function add_entity_button(parent, entity, entity_roles, role, selected, accesses)
   unit_number_to_entity[entity.unit_number] = entity
 
   local description = ""
@@ -1688,23 +1705,6 @@ local function refresh(player)
   refresh_options(frame.options, state.options)
   refresh_signals(player, network)
   refresh_accesses(player, network)
-end
-
--- only used in gui.
-local function network_to_text(network)
-  if network.wire_connector_id == defines.wire_connector_id.circuit_red then
-     return "[item=red-wire] " .. network.id
-  elseif network.wire_connector_id == defines.wire_connector_id.circuit_green then
-     return "[item=green-wire] " .. network.id
-  elseif network.wire_connector_id == defines.wire_connector_id.combinator_input_red then
-     return "[item=red-wire] input " .. network.id
-  elseif network.wire_connector_id == defines.wire_connector_id.combinator_input_green then
-     return "[item=green-wire] input " .. network.id
-  elseif network.wire_connector_id == defines.wire_connector_id.combinator_output_red then
-     return "[item=red-wire] out " .. network.id
-  elseif network.wire_connector_id == defines.wire_connector_id.combinator_output_green then
-     return "[item=green-wire] out " .. network.id
-  end
 end
 
 local function open_inspector(player, source, network)
