@@ -319,6 +319,26 @@ local function behavior_accesses(entity, behavior, network)
     )
   end
 
+  local combinator_in  = {red = defines.wire_connector_id.combinator_input_red , green = defines.wire_connector_id.combinator_input_green }
+  local combinator_out = {red = defines.wire_connector_id.combinator_output_red, green = defines.wire_connector_id.combinator_output_green}
+  local function gather_neighbors(connectors)
+    local result = {}
+    local found = nil
+    for color, value in pairs(connectors) do
+        local network = entity.get_wire_connector(value)
+        if network and network.network_id ~= 0 then
+          result[color] = {
+            id = network.network_id,
+            wire_type = network.wire_type,
+            wire_connector_id = network.wire_connector_id,
+            network = network
+          }
+          found = true
+        end
+    end
+    return found and result
+  end
+
   -- Add all signals currently emitted by a combinator.
   local function add_combinator_all_outputs(text)
     add_write(
@@ -385,10 +405,12 @@ local function behavior_accesses(entity, behavior, network)
             end
           }
         )
+        result.other_out = gather_neighbors(combinator_out)
       end
 
       if combinator_wires_selected(behavior.output_networks, true, entity, network) then
         add_combinator_output("result ", p.output_signal)
+        result.other_in = gather_neighbors(combinator_in)
       end
     end
 
@@ -429,6 +451,7 @@ local function behavior_accesses(entity, behavior, network)
             }
           )
         end
+        result.other_out = gather_neighbors(combinator_out)
       end
 
       if combinator_wires_selected(behavior.output_networks, true, entity, network) then
@@ -439,6 +462,7 @@ local function behavior_accesses(entity, behavior, network)
         for _, o in pairs(p.else_outputs or {}) do
           add_combinator_output("else ",   o.signal, not o.copy_count_from_input and (o.constant or "1"))
         end
+        result.other_in = gather_neighbors(combinator_in)
       end
     end
 
@@ -541,6 +565,7 @@ local function behavior_accesses(entity, behavior, network)
         )
 
       end
+      result.other_out = gather_neighbors(combinator_out)
     end
 
     if p and output_ok then
@@ -557,6 +582,7 @@ local function behavior_accesses(entity, behavior, network)
           end
         }
       )
+      result.other_in = gather_neighbors(combinator_in)
     end
 
 
@@ -1564,6 +1590,24 @@ local function add_entity_button(parent, entity, entity_roles, role, selected, a
 
   local entity_panel = parent.add{type="frame",direction="horizontal", style="cni_forward_frame"}
   entity_panel.style.horizontally_stretchable = true
+  if entity_roles and entity_roles.other_in then
+    local other_in_flow = entity_panel.add{type="flow",direction="vertical"}
+    for color, network in pairs(entity_roles.other_in) do
+      unit_number_to_entity[entity.unit_number] = entity -- TODO again here? necessary or not?
+      other_in_flow.add{ -- TODO duplication from add_relative_button
+        type = "button",
+        name = BUTTON .. "inFrame" .. network.id,
+        caption = "[item=" .. color .. "-wire]",
+        tooltip = "Inspect circuit network " .. network.id,
+        style = "forward_button",
+        tags = {
+            cni_action = "open_from_entity",
+            unit_number = entity.unit_number,
+            network = network
+        }
+      }.style.width = 60
+    end
+  end
 
   local b = entity_panel.add{
     type = "button",
@@ -1597,6 +1641,26 @@ local function add_entity_button(parent, entity, entity_roles, role, selected, a
       caption = access.text
     })
   end
+
+  if entity_roles and entity_roles.other_out then
+    local other_out_flow = entity_panel.add{type="flow",direction="vertical"}
+    for color, network in pairs(entity_roles.other_out) do
+      unit_number_to_entity[entity.unit_number] = entity -- TODO again here? necessary or not?
+      other_out_flow.add{ -- TODO duplication from add_relative_button
+        type = "button",
+        name = BUTTON .. "inFrame" .. network.id,
+        caption = "[item=" .. color .. "-wire]",
+        tooltip = "Inspect circuit network " .. network.id,
+        style = "forward_button",
+        tags = {
+            cni_action = "open_from_entity",
+            unit_number = entity.unit_number,
+            network = network
+        }
+      }.style.width = 60
+    end
+  end
+
 end
 
 local function refresh_options(options_frame,state_options)
@@ -1667,11 +1731,12 @@ local function refresh_accesses(player, network)
   for _, entity in pairs(entities) do
     local write = false
     local writes = {}
-    for _,a in ipairs(entity_roles(entity, network).writes) do
+    local er = entity_roles(entity, network)
+    for _,a in ipairs(er.writes) do
       if is_access(a,options,true) then write = true; table.insert(writes,a) end
     end
     if write then
-      add_entity_button(writer_gui, entity, nil, "writer", options.signal, writes)
+      add_entity_button(writer_gui, entity, er, "writer", options.signal, writes)
     end
   end
 
@@ -1682,11 +1747,12 @@ local function refresh_accesses(player, network)
   for _, entity in pairs(entities) do
     local read = false
     local reads = {}
-    for _,a in ipairs(entity_roles(entity, network).reads) do
+    local er = entity_roles(entity, network)
+    for _,a in ipairs(er.reads) do
       if is_access(a,options,false) then read = true; table.insert(reads, a) end
     end
     if read then
-      add_entity_button(reader_gui, entity, nil, "reader", options.signal, reads)
+      add_entity_button(reader_gui, entity, er, "reader", options.signal, reads)
     end
   end
 end
@@ -1829,7 +1895,7 @@ local function open_inspector(player, source, network)
   local signal_gui_frame = body.add{name="signal_gui_frame", type="scroll-pane", direction="vertical", style="logistic_sections_scroll_pane"}
   signal_gui_frame.style.vertically_stretchable = true
   local signal_gui = signal_gui_frame.add{name="signal_gui", type="table", column_count = 10, style = "compact_slot_table"  }
-  signal_gui.style.cell_padding = 1 * scale
+  signal_gui.style.cell_padding = 1 * scale -- that scale thing does not work as expected
   signal_gui.style.width = width * 0.2
 
   local reader_gui = body.add{name="reader_gui", type = "flow", direction="vertical"}
