@@ -1591,8 +1591,9 @@ local function add_entity_button(parent, entity, entity_roles, role, selected, a
 
   local entity_panel = parent.add{type="frame",direction="horizontal", style="cni_forward_frame"}
   entity_panel.style.horizontally_stretchable = true
+  local other_in_flow = entity_panel.add{type="flow",direction="vertical"}
+  other_in_flow.style.width = 60
   if entity_roles and entity_roles.other_in then
-    local other_in_flow = entity_panel.add{type="flow",direction="vertical"}
     for color, network in pairs(entity_roles.other_in) do
       unit_number_to_entity[entity.unit_number] = entity -- TODO again here? necessary or not?
       other_in_flow.add{ -- TODO duplication from add_relative_button
@@ -1632,8 +1633,9 @@ local function add_entity_button(parent, entity, entity_roles, role, selected, a
     })
   end
 
+  local other_out_flow = entity_panel.add{type="flow",direction="vertical"}
+  other_out_flow.style.width = 60
   if entity_roles and entity_roles.other_out then
-    local other_out_flow = entity_panel.add{type="flow",direction="vertical"}
     for color, network in pairs(entity_roles.other_out) do
       unit_number_to_entity[entity.unit_number] = entity -- TODO again here? necessary or not?
       other_out_flow.add{ -- TODO duplication from add_relative_button
