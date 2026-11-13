@@ -6,22 +6,20 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 
 
 ## TODOs:
+* back and forward buttons in titlebar not working yet
 * alternatively: main view with 5 colummns. Center: current signals on wire. 4: where to signal are written to (i.e. network readers) 5: outgoing networks. 1, 2 mirroring, 2 network writes 1. imcoming networks.
-* change to have tabs?
-** tab 1: signals on wire
-** tab 2: the current detail view with write / read access
-** tab 3: "neighboring" networks
 
 ### conceptual TODOs
 * how to handle mods with new entities or new control behavior?
 
 ### polishing up gui
-* left part (signals) has varying width, can grow too long (robopart read network contents) and too wide
-* entity button ugly
+* signal column is always green, should depend on inspected wire
+* description for combinators is gone now, must be displayed again
+* align readers and writers
 * list of accesses per entity is ugly
 
 ### normal work
-* combinators read & write is not correct. Treats input and output always as connected. <-- check for selector, others should be ok.
+* selector combinators read & write is not correct. Treats input and output always as connected.
 * if a decider output (write) says "input count", that also qualifies as read!
 * click into list of current values for filter? <-- does not always work, due to refresh (fewer misses with lower refresh rate)
 ** re-do refresh logic? keep table of buttons, or build it up.
@@ -29,9 +27,6 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 
 ### for publishing
 * remove game.print, player.print (except one case as commented)
-* rewrite top section above, chatGPT output is obsolete
-* add screenshot
-* better info.json
 
 
 Yes. Looking back at the implementation I gave you, there are several shortcomings beyond the rocket silo. The biggest problem is that I presented it as a comprehensive implementation without verifying every behavior against the Factorio 2.1.21 API.
