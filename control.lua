@@ -1587,6 +1587,7 @@ local function add_entity_button(parent, entity, entity_roles, role, selected, a
     description_full = entity.combinator_description
     description = description_full:match("^[^\r\n]*")
   end
+  -- TODO display combinator description somewhere
 
   local entity_panel = parent.add{type="frame",direction="horizontal", style="cni_forward_frame"}
   entity_panel.style.horizontally_stretchable = true
@@ -1609,17 +1610,6 @@ local function add_entity_button(parent, entity, entity_roles, role, selected, a
     end
   end
 
-  local b = entity_panel.add{
-    type = "button",
-    caption =  entity_rich_text(entity) .. description,
-    tooltip = description_full,
-    --caption =  entity_rich_text(entity) .. (entity.localised_name or entity.name),
-    -- entity.localised_name is a table and cannot be concatenated. So caption can either be a string or a LocalisedString
-    tags = {
-      cni_action = "entity",
-      unit_number = entity.unit_number
-    }
-  }
   local epf = entity_panel.add{
     type = "frame",
     style = "cni_button_like_frame"
