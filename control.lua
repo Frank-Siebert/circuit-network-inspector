@@ -1888,7 +1888,7 @@ local function open_inspector(player, source, network)
   local signal_gui_frame = body.add{name="signal_gui_frame", type="scroll-pane", direction="vertical", style="logistic_sections_scroll_pane"}
   signal_gui_frame.style.vertically_stretchable = true
   local signal_gui = signal_gui_frame.add{name="signal_gui", type="table", column_count = 10, style = "compact_slot_table"  }
-  signal_gui.style.cell_padding = 1 * scale -- that scale thing does not work as expected
+  signal_gui.style.cell_padding = 1
   signal_gui.style.width = width * 0.2
 
   local reader_gui = body.add{name="reader_gui", type = "flow", direction="vertical"}
