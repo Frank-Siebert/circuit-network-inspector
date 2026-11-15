@@ -44,7 +44,7 @@ local function network_from_state(state)
 end
 
 local function network_from_inspected_network(inspected_network)
-  network_from_state{inspected_network=inspected_network} -- TODO hacky inversion
+  return network_from_state{inspected_network=inspected_network} -- TODO hacky inversion
 end
 
 local function entity_roles(entity, network)
@@ -316,8 +316,12 @@ local function refresh(player)
 end
 
 local function render_inspector(player, network)
-  player.print("open_inspector " .. (player.gui.screen[GUI] and "from inspector" or "from entity"))
-  if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
+  player.print("render_inspector " .. (player.gui.screen[GUI] and "from inspector" or "from entity"))
+  if player.gui.screen[GUI] then
+    player.gui.screen[GUI].titlebar.label.caption = "Circuit Network Inspector " .. network_to_text(network)
+    refresh(player)
+    return
+  end
 
   local frame = player.gui.screen.add{
     type="frame",
@@ -327,6 +331,7 @@ local function render_inspector(player, network)
   player.opened = frame
 
   local titlebar = frame.add{
+    name = "titlebar",
     type = "flow",
     direction = "horizontal"
   }
@@ -334,6 +339,7 @@ local function render_inspector(player, network)
   titlebar.drag_target = frame
 
   titlebar.add{
+    name = "label",
     type = "label",
     caption = "Circuit Network Inspector " .. network_to_text(network),
     style = "frame_title",
@@ -555,6 +561,7 @@ local function cni_previous(event)
     table.insert(hist.forward, hist.current)
   end
   hist.current = table.remove(hist.back)
+  storage.cni[player.index].inspected_network = hist.current
 
   render_inspector(player, network_from_inspected_network(hist.current))
 end
@@ -572,9 +579,9 @@ local function cni_next(event)
     table.insert(hist.back, hist.current)
   end
   hist.current = table.remove(hist.forward)
+  storage.cni[player.index].inspected_network = hist.current
 
-  -- Re-render your GUI with hist.current
-  -- render_my_gui(player, hist.current)
+  render_inspector(player, network_from_inspected_network(hist.current))
 end
 
 script.on_event(defines.events.on_gui_opened, function(event)
@@ -591,7 +598,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
   if not player then return end
 
   if event.element and event.element.valid and event.element.name == GUI then
-    if storage.cni then storage.cni[player.index] = nil end
+    if storage.cni then storage.cni[player.index] = nil ; player.print("events.on_gui_closed: storage.cni deleted") end
     event.element.destroy()
   end
 
@@ -651,7 +658,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     end
 
     if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
-    if storage.cni then storage.cni[player.index] = nil end
+    if storage.cni then storage.cni[player.index] = nil  ; player.print("events.on_gui_click / entity: storage.cni deleted")end
   elseif action == "focus_entity" then
     local entity = unit_number_to_entity[element.tags.unit_number]
     focus_entity(player,entity)
@@ -703,4 +710,4 @@ end)
 script.on_event("cni_previous", cni_previous)
 
 -- Listen for ALT + RIGHT
-script.on_event("cni_next",cni_next)
+script.on_event("cni_next", cni_next)
