@@ -43,6 +43,10 @@ local function network_from_state(state)
   return circuit_networks(source)[tostring(tostring(state.inspected_network.network_id) .. ":" .. tostring(state.inspected_network.wire_type))]
 end
 
+local function network_from_inspected_network(inspected_network)
+  network_from_state{inspected_network=inspected_network} -- TODO hacky inversion
+end
+
 local function entity_roles(entity, network)
   return Behavior_accesses(entity, entity.get_control_behavior(), network)
 end
@@ -433,20 +437,36 @@ local function render_inspector(player, network)
   refresh(player)
 end
 
+local function get_player_history(player_index)
+  storage.history = storage.history or {}
+  storage.history[player_index] = storage.history[player_index] or {
+    back = {},
+    forward = {},
+    current = nil
+  }
+  return storage.history[player_index]
+end
+
+local function navigate_to(player, new_state, render_gui_callback)
+  local hist = get_player_history(player.index)
+  if hist.current then
+    table.insert(hist.back, hist.current)
+  end
+  hist.current = new_state
+  hist.forward = {} -- Clear forward stack on new navigation
+end
+
 local function open_inspector(player, source, network)
   storage.cni = storage.cni or {}
-  local history
-  if (storage.cni[player.index]) then
-  else
-    history = History:new(nil)
-  end
-  local options = storage.cni[player.index] and storage.cni[player.index].options
-  storage.cni[player.index] = {
-    inspected_network = {
+  local inspected_network = {
       source_unit_number = source.unit_number,
       network_id = network.id,
       wire_type = network.wire_type
-    },
+  }
+  navigate_to(player, inspected_network)
+  local options = storage.cni[player.index] and storage.cni[player.index].options
+  storage.cni[player.index] = {
+    inspected_network = inspected_network,
     options = options or {
       signal = nil,
       literal_matching = false,
@@ -517,6 +537,46 @@ local function add_relative_button(player, entity)
   }
 end
 
+-- Helper to verify your mod's main frame is the active opened GUI
+local function is_my_gui_open(player)
+  return player and player.gui.screen[GUI]
+end
+
+local function cni_previous(event)
+  game.print("cni_previous")
+  local player = game.get_player(event.player_index)
+  if not (player and is_my_gui_open(player)) then return end
+  player.print("cni_previous my gui is open")
+
+  local hist = get_player_history(player.index)
+  if #hist.back == 0 then return end
+
+  if hist.current then
+    table.insert(hist.forward, hist.current)
+  end
+  hist.current = table.remove(hist.back)
+
+  render_inspector(player, network_from_inspected_network(hist.current))
+end
+
+local function cni_next(event)
+  game.print("cni_next")
+  local player = game.get_player(event.player_index)
+  if not (player and is_my_gui_open(player)) then return end
+  player.print("cni_next my gui is open")
+
+  local hist = get_player_history(player.index)
+  if #hist.forward == 0 then return end
+
+  if hist.current then
+    table.insert(hist.back, hist.current)
+  end
+  hist.current = table.remove(hist.forward)
+
+  -- Re-render your GUI with hist.current
+  -- render_my_gui(player, hist.current)
+end
+
 script.on_event(defines.events.on_gui_opened, function(event)
   local player = game.get_player(event.player_index)
   if not player then return end
@@ -547,6 +607,12 @@ script.on_event(defines.events.on_gui_click, function(event)
 
   if event.element.name == "cni_close" then
     player.gui.screen[GUI].destroy()
+    return
+  elseif event.element.name == "cni_previous" then
+    cni_previous(event)
+    return
+  elseif event.element.name == "cni_next" then
+    cni_next(event)
     return
   end
 
@@ -633,68 +699,8 @@ script.on_configuration_changed(function()
   storage.cni = storage.cni or {}
 end)
 
--- control.lua
-local function get_player_history(player_index)
-  storage.history = storage.history or {}
-  storage.history[player_index] = storage.history[player_index] or {
-    back = {},
-    forward = {},
-    current = nil
-  }
-  return storage.history[player_index]
-end
-
--- Call this whenever the user clicks a link/tab inside your mod GUI
-local function navigate_to(player, new_state, render_gui_callback)
-  local hist = get_player_history(player.index)
-  if hist.current then
-    table.insert(hist.back, hist.current)
-  end
-  hist.current = new_state
-  hist.forward = {} -- Clear forward stack on new navigation
-  render_gui_callback(player, new_state)
-end
-
--- Helper to verify your mod's main frame is the active opened GUI
-local function is_my_gui_open(player)
-  return player and player.gui.screen[GUI]
-end
-
-local function cni_previous(event)
-  game.print("cni_previous")
-  local player = game.get_player(event.player_index)
-  if not (player and is_my_gui_open(player)) then return end
-  player.print("cni_previous")
-
-  local hist = get_player_history(player.index)
-  if #hist.back == 0 then return end
-
-  if hist.current then
-    table.insert(hist.forward, hist.current)
-  end
-  hist.current = table.remove(hist.back)
-
-  -- Re-render your GUI with hist.current
-  -- render_my_gui(player, hist.current)
-end
-
 -- Listen for ALT + LEFT
 script.on_event("cni_previous", cni_previous)
 
-local function cni_next(event)
-  game.print("cni_next")
-  local player = game.get_player(event.player_index)
-  if not (player and is_my_gui_open(player)) then return end
-  player.print("cni_next")
-
-  local hist = get_player_history(player.index)
-  if #hist.forward == 0 then return end
-
-  if hist.current then
-    table.insert(hist.back, hist.current)
-  end
-  hist.current = table.remove(hist.forward)
-
-  -- Re-render your GUI with hist.current
-  -- render_my_gui(player, hist.current)
-end)
+-- Listen for ALT + RIGHT
+script.on_event("cni_next",cni_next)
