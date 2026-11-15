@@ -621,3 +621,70 @@ end)
 script.on_configuration_changed(function()
   storage.cni = storage.cni or {}
 end)
+
+-- control.lua
+local function get_player_history(player_index)
+  storage.history = storage.history or {}
+  storage.history[player_index] = storage.history[player_index] or {
+    back = {},
+    forward = {},
+    current = nil
+  }
+  return storage.history[player_index]
+end
+
+-- Call this whenever the user clicks a link/tab inside your mod GUI
+local function navigate_to(player, new_state, render_gui_callback)
+  local hist = get_player_history(player.index)
+  if hist.current then
+    table.insert(hist.back, hist.current)
+  end
+  hist.current = new_state
+  hist.forward = {} -- Clear forward stack on new navigation
+  render_gui_callback(player, new_state)
+end
+
+-- Helper to verify your mod's main frame is the active opened GUI
+local function is_my_gui_open(player)
+  return player.opened
+    and player.opened.object_name == "LuaGuiElement"
+    and player.opened.name == "my_mod_main_frame"
+end
+
+-- Listen for ALT + LEFT
+script.on_event("my-mod-nav-back", function(event)
+  game.print("my-mod-nav-back")
+  local player = game.get_player(event.player_index)
+  if not (player and is_my_gui_open(player)) then return end
+  player.print("my-mod-nav-back")
+
+  local hist = get_player_history(player.index)
+  if #hist.back == 0 then return end
+
+  if hist.current then
+    table.insert(hist.forward, hist.current)
+  end
+  hist.current = table.remove(hist.back)
+
+  -- Re-render your GUI with hist.current
+  -- render_my_gui(player, hist.current)
+end)
+
+-- Listen for ALT + RIGHT
+script.on_event("my-mod-nav-forward", function(event)
+  game.print("my-mod-nav-forward")
+  local player = game.get_player(event.player_index)
+  if not (player and is_my_gui_open(player)) then return end
+  player.print("my-mod-nav-forward")
+
+  local hist = get_player_history(player.index)
+  if #hist.forward == 0 then return end
+
+  if hist.current then
+    table.insert(hist.back, hist.current)
+  end
+  hist.current = table.remove(hist.forward)
+
+  -- Re-render your GUI with hist.current
+  -- render_my_gui(player, hist.current)
+end)

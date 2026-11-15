@@ -14,3 +14,22 @@ data.raw["gui-style"].default["cni_button_like_frame"] = {
         shadow = default_dirt
     }
 }
+
+data:extend({
+  {
+    type = "custom-input",
+    name = "my-mod-nav-back",
+    key_sequence = "ALT + LEFT",
+    alternative_key_sequence = "mouse-button-4", -- Optional: matches mouse back button
+    consuming = "none",
+    action = "lua"
+  },
+  {
+    type = "custom-input",
+    name = "my-mod-nav-forward",
+    key_sequence = "ALT + RIGHT",
+    alternative_key_sequence = "mouse-button-5", -- Optional: matches mouse forward button
+    consuming = "none",
+    action = "lua"
+  }
+})
