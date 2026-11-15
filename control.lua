@@ -365,7 +365,7 @@ local function open_inspector(player, source, network)
     sprite = "utility/backward_arrow",
     --hovered_sprite = "utility/backward_arrow_black",
     --clicked_sprite = "utility/backward_arrow_black",
-    tooltip = {"gui.close-instruction"}
+    tooltip = {"gui.back-instruction"}
   }
   titlebar.add{
     type = "sprite-button",
@@ -374,7 +374,7 @@ local function open_inspector(player, source, network)
     sprite = "utility/forward_arrow",
     --hovered_sprite = "utility/forward_arrow_black",
     --clicked_sprite = "utility/forward_arrow_black",
-    tooltip = {"gui.close-instruction"}
+    tooltip = {"gui.forward-instruction"}
   }
   titlebar.add{
     type = "sprite-button",
@@ -547,7 +547,6 @@ script.on_event(defines.events.on_gui_click, function(event)
     local network = element.tags.network
     --local entity = game.get_entity_by_unit_number(element.tags.unit_number)
     local entity = unit_number_to_entity[element.tags.unit_number]
-	if not entity then player.print("NOT entity") end
     if not entity then return end
     if network then
       open_inspector(player, entity, network)
@@ -654,11 +653,11 @@ local function is_my_gui_open(player)
 end
 
 -- Listen for ALT + LEFT
-script.on_event("my-mod-nav-back", function(event)
-  game.print("my-mod-nav-back")
+script.on_event("cni_previous", function(event)
+  game.print("cni_previous")
   local player = game.get_player(event.player_index)
   if not (player and is_my_gui_open(player)) then return end
-  player.print("my-mod-nav-back")
+  player.print("cni_previous")
 
   local hist = get_player_history(player.index)
   if #hist.back == 0 then return end
@@ -673,11 +672,11 @@ script.on_event("my-mod-nav-back", function(event)
 end)
 
 -- Listen for ALT + RIGHT
-script.on_event("my-mod-nav-forward", function(event)
-  game.print("my-mod-nav-forward")
+script.on_event("cni_next", function(event)
+  game.print("cni_next")
   local player = game.get_player(event.player_index)
   if not (player and is_my_gui_open(player)) then return end
-  player.print("my-mod-nav-forward")
+  player.print("cni_next")
 
   local hist = get_player_history(player.index)
   if #hist.forward == 0 then return end
