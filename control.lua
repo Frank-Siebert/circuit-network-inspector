@@ -228,7 +228,7 @@ local function refresh_signals(player, network)
         signal_type = s.signal.type,
         signal_name = s.signal.name,
         signal_quality = s.signal.quality,
-    }, (state.wire_type == defines.wire_type.green) and 1 or 2))
+    }, (state.inspected_network.wire_type == defines.wire_type.green) and 1 or 2))
   end
 end
 
@@ -239,7 +239,7 @@ local function is_access(a, options, filter_writes)
   else
     if a_is_write and options.current_writes then
       for _, s in ipairs(a.currentwrite) do
-        if same_signal(options.signal,s.signal) then return true end
+        if Same_signal(options.signal,s.signal) then return true end
       end
       return false
     end

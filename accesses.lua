@@ -8,6 +8,10 @@ local function same_signal(a, b)
   return signal_key(a) == signal_key(b)
 end
 
+function Same_signal(a, b) -- TODO only needed in one instance outside, re-check coupling
+  return same_signal(a, b)
+end
+
 local function signal_text(signal)
   if not signal then return "?" end
   local t = signal.type or "item"
