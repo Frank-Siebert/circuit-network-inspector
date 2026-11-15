@@ -311,21 +311,8 @@ local function refresh(player)
   refresh_accesses(player, network)
 end
 
-local function open_inspector(player, source, network)
-  storage.cni = storage.cni or {}
-  storage.cni[player.index] = {
-    inspected_network = {
-      source_unit_number = source.unit_number,
-      network_id = network.id,
-      wire_type = network.wire_type
-    },
-    options = {
-      signal = nil,
-      literal_matching = false,
-      current_writes = false
-    }
-  }
-
+local function render_inspector(player, network)
+  player.print("open_inspector " .. (player.gui.screen[GUI] and "from inspector" or "from entity"))
   if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
 
   local frame = player.gui.screen.add{
@@ -444,6 +431,29 @@ local function open_inspector(player, source, network)
   reader_gui.style.horizontally_stretchable = true
 
   refresh(player)
+end
+
+local function open_inspector(player, source, network)
+  storage.cni = storage.cni or {}
+  local history
+  if (storage.cni[player.index]) then
+  else
+    history = History:new(nil)
+  end
+  local options = storage.cni[player.index] and storage.cni[player.index].options
+  storage.cni[player.index] = {
+    inspected_network = {
+      source_unit_number = source.unit_number,
+      network_id = network.id,
+      wire_type = network.wire_type
+    },
+    options = options or {
+      signal = nil,
+      literal_matching = false,
+      current_writes = false
+    }
+  }
+  render_inspector(player, network)
 end
 
 local function empty(x)
