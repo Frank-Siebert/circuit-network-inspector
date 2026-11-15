@@ -19,7 +19,7 @@ data:extend({
   {
     type = "custom-input",
     name = "cni_previous",
-    key_sequence = "ALT + LEFT",
+    key_sequence = "CONTROL + ALT + LEFT",
     alternative_key_sequence = "mouse-button-4", -- Optional: matches mouse back button
     consuming = "none",
     action = "lua"
@@ -27,7 +27,7 @@ data:extend({
   {
     type = "custom-input",
     name = "cni_next",
-    key_sequence = "ALT + RIGHT",
+    key_sequence = "CONTROL + CTRL + RIGHT",
     alternative_key_sequence = "mouse-button-5", -- Optional: matches mouse forward button
     consuming = "none",
     action = "lua"

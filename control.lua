@@ -318,7 +318,10 @@ end
 local function render_inspector(player, network)
   player.print("render_inspector " .. (player.gui.screen[GUI] and "from inspector" or "from entity"))
   if player.gui.screen[GUI] then
-    player.gui.screen[GUI].titlebar.label.caption = "Circuit Network Inspector " .. network_to_text(network)
+    local titlebar = player.gui.screen[GUI].titlebar
+    titlebar.label.caption = "Circuit Network Inspector " .. network_to_text(network)
+    titlebar.cni_previous.enabled = #storage.history[player.index].back    > 0
+    titlebar.cni_next    .enabled = #storage.history[player.index].forward > 0
     refresh(player)
     return
   end
@@ -362,7 +365,8 @@ local function render_inspector(player, network)
     sprite = "utility/backward_arrow",
     --hovered_sprite = "utility/backward_arrow_black",
     --clicked_sprite = "utility/backward_arrow_black",
-    tooltip = {"gui.back-instruction"}
+    enabled = false,
+    tooltip = {"gui-tooltip.cni_previous"}
   }
   titlebar.add{
     type = "sprite-button",
@@ -371,7 +375,8 @@ local function render_inspector(player, network)
     sprite = "utility/forward_arrow",
     --hovered_sprite = "utility/forward_arrow_black",
     --clicked_sprite = "utility/forward_arrow_black",
-    tooltip = {"gui.forward-instruction"}
+    enabled = false,
+    tooltip = {"gui-tooltip.cni_next"}
   }
   titlebar.add{
     type = "sprite-button",
