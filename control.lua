@@ -657,13 +657,10 @@ end
 
 -- Helper to verify your mod's main frame is the active opened GUI
 local function is_my_gui_open(player)
-  return player.opened
-    and player.opened.object_name == "LuaGuiElement"
-    and player.opened.name == "my_mod_main_frame"
+  return player and player.gui.screen[GUI]
 end
 
--- Listen for ALT + LEFT
-script.on_event("cni_previous", function(event)
+local function cni_previous(event)
   game.print("cni_previous")
   local player = game.get_player(event.player_index)
   if not (player and is_my_gui_open(player)) then return end
@@ -679,10 +676,12 @@ script.on_event("cni_previous", function(event)
 
   -- Re-render your GUI with hist.current
   -- render_my_gui(player, hist.current)
-end)
+end
 
--- Listen for ALT + RIGHT
-script.on_event("cni_next", function(event)
+-- Listen for ALT + LEFT
+script.on_event("cni_previous", cni_previous)
+
+local function cni_next(event)
   game.print("cni_next")
   local player = game.get_player(event.player_index)
   if not (player and is_my_gui_open(player)) then return end
