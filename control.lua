@@ -38,9 +38,9 @@ local function circuit_networks(entity)
 end
 
 local function network_from_state(state)
-  local source = unit_number_to_entity[ state.source_unit_number]
+  local source = unit_number_to_entity[ state.inspected_network.source_unit_number]
   if not source or not source.valid then return nil end
-  return circuit_networks(source)[tostring(tostring(state.network_id) .. ":" .. tostring(state.wire_type))]
+  return circuit_networks(source)[tostring(tostring(state.inspected_network.network_id) .. ":" .. tostring(state.inspected_network.wire_type))]
 end
 
 local function entity_roles(entity, network)
@@ -257,7 +257,7 @@ local function refresh_accesses(player, network)
   local state = storage.cni and storage.cni[player.index]
   if not state then return end
   if not network then network = network_from_state(state) end
-  local source = unit_number_to_entity[ state.source_unit_number]
+  local source = unit_number_to_entity[ state.inspected_network.source_unit_number]
   local options = state.options
 
   local entities = collect_network(source, network)
@@ -314,9 +314,11 @@ end
 local function open_inspector(player, source, network)
   storage.cni = storage.cni or {}
   storage.cni[player.index] = {
-    source_unit_number = source.unit_number,
-    network_id = network.id,
-    wire_type = network.wire_type,
+    inspected_network = {
+      source_unit_number = source.unit_number,
+      network_id = network.id,
+      wire_type = network.wire_type
+    },
     options = {
       signal = nil,
       literal_matching = false,
