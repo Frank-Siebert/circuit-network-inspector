@@ -330,6 +330,17 @@ function Behavior_accesses(entity, behavior, network)
 
   local t = behavior.type
 
+  if t ~= defines.control_behavior.type.arithmetic_combinator and
+     t ~= defines.control_behavior.type.decider_combinator    and
+     t ~= defines.control_behavior.type.selector_combinator then
+      if input_ok then
+        result.other_out = {} -- TODO
+      end
+      if output_ok then
+        result.other_in  = {} -- TODO
+      end
+  end
+
   --------------------------------------------------------------------------
   -- COMBINATORS
   --------------------------------------------------------------------------
@@ -834,12 +845,14 @@ function Behavior_accesses(entity, behavior, network)
     if output_ok and behavior.circuit_read_contents then
       local inventories = {}
 
-      local input = entity.get_inventory(defines.inventory.furnace_source)
-      local output = entity.get_inventory(defines.inventory.furnace_result)
+      local input = entity.get_inventory(defines.inventory.crafter_input)
+      local output = entity.get_inventory(defines.inventory.crafter_output)
 
       if input then table.insert(inventories, input) end
       if output then table.insert(inventories, output) end
-
+      --if behavior.include_in_crafting and entity.get_inventory(defines.inventory.) then
+      --  table.insert(inventories, entity.get_inventory(defines.inventory.))
+      --end -- TODO, also for assembling_machine
       add_inventories("read contents ", inventories)
     end
 

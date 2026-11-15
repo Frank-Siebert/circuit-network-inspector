@@ -1,6 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.0
+Date: 2016.11.15
+  Modding:
+    - central wire column now has the correct color
+    - back and forward button now working
+    - fix crash for furnaces with "read contents" enabled
+
 Version: 0.3.0
-Date: 2026.11.dd
+Date: 2026.11.13
   Modding:
     - Use better thumbnail for circuit network inspector.
+    - Overhaul layout of inspector main view
+    - have buttons to switch focussed network without leaving inspector
+    - add yet non-functional back and forward button, to be tied to direct switching
 

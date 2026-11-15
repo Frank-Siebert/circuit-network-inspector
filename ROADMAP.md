@@ -6,8 +6,8 @@ Display of the current circuit network taken from https://github.com/JasonLandbr
 
 
 ## TODOs:
-* back and forward buttons in titlebar not working yet
-* alternatively: main view with 5 colummns. Center: current signals on wire. 4: where to signal are written to (i.e. network readers) 5: outgoing networks. 1, 2 mirroring, 2 network writes 1. imcoming networks.
+* don't show other_in/out if the are the same (but watch out for loops!)
+* set other_in/out for non-combinators. One code captures all!
 
 ### conceptual TODOs
 * how to handle mods with new entities or new control behavior?
