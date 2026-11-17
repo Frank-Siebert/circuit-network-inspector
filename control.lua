@@ -316,7 +316,6 @@ local function refresh(player)
 end
 
 local function render_inspector(player, network)
-  player.print("render_inspector " .. (player.gui.screen[GUI] and "from inspector" or "from entity"))
   if player.gui.screen[GUI] then
     local titlebar = player.gui.screen[GUI].titlebar
     titlebar.label.caption = "Circuit Network Inspector " .. network_to_text(network)
@@ -553,10 +552,8 @@ local function is_my_gui_open(player)
 end
 
 local function cni_previous(event)
-  game.print("cni_previous")
   local player = game.get_player(event.player_index)
   if not (player and is_my_gui_open(player)) then return end
-  player.print("cni_previous my gui is open")
 
   local hist = get_player_history(player.index)
   if #hist.back == 0 then return end
@@ -571,10 +568,8 @@ local function cni_previous(event)
 end
 
 local function cni_next(event)
-  game.print("cni_next")
   local player = game.get_player(event.player_index)
   if not (player and is_my_gui_open(player)) then return end
-  player.print("cni_next my gui is open")
 
   local hist = get_player_history(player.index)
   if #hist.forward == 0 then return end
@@ -597,12 +592,21 @@ script.on_event(defines.events.on_gui_opened, function(event)
   end
 end)
 
+local function delete_storage(player)
+  if storage.cni then
+    storage.cni[player.index] = nil
+  end
+  if storage.history then
+    storage.history[player.index] = nil
+  end
+end
+
 script.on_event(defines.events.on_gui_closed, function(event)
   local player = game.get_player(event.player_index)
   if not player then return end
 
   if event.element and event.element.valid and event.element.name == GUI then
-    if storage.cni then storage.cni[player.index] = nil ; player.print("events.on_gui_closed: storage.cni deleted") end
+    delete_storage(player)
     event.element.destroy()
   end
 
@@ -618,6 +622,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
   if event.element.name == "cni_close" then
     player.gui.screen[GUI].destroy()
+    delete_storage(player)
     return
   elseif event.element.name == "cni_previous" then
     cni_previous(event)
@@ -632,7 +637,6 @@ script.on_event(defines.events.on_gui_click, function(event)
 
   if action == "open_from_entity" then
     local network = element.tags.network
-    --local entity = game.get_entity_by_unit_number(element.tags.unit_number)
     local entity = unit_number_to_entity[element.tags.unit_number]
     if not entity then return end
     if network then
@@ -662,7 +666,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     end
 
     if player.gui.screen[GUI] then player.gui.screen[GUI].destroy() end
-    if storage.cni then storage.cni[player.index] = nil  ; player.print("events.on_gui_click / entity: storage.cni deleted")end
+    if storage.cni then storage.cni[player.index] = nil end
   elseif action == "focus_entity" then
     local entity = unit_number_to_entity[element.tags.unit_number]
     focus_entity(player,entity)
