@@ -4,6 +4,7 @@ Date: 2016.11.17
   Modding:
     - column widths should now be better
     - remove debug output
+    - show combinator description in access panel
 ---------------------------------------------------------------------------------------------------
 Version: 0.4.0
 Date: 2016.11.15

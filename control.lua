@@ -127,17 +127,6 @@ end
 local function add_entity_button(parent, entity, entity_roles, role, selected, accesses)
   unit_number_to_entity[entity.unit_number] = entity
 
-  local description = ""
-  local description_full = entity.name
-  if entity.type == "constant-combinator" or
-     entity.type == "arithmetic-combinator" or
-     entity.type == "decider-combinator" or
-     entity.type == "selector-combinator" then
-    description_full = entity.combinator_description
-    description = description_full:match("^[^\r\n]*")
-  end
-  -- TODO display combinator description somewhere
-
   local entity_panel = parent.add{type="frame",direction="horizontal", style="cni_forward_frame"}
   entity_panel.style.horizontally_stretchable = true
   local other_in_flow = entity_panel.add{type="flow",direction="vertical"}
@@ -176,6 +165,18 @@ local function add_entity_button(parent, entity, entity_roles, role, selected, a
 
   local access_panel = entity_panel.add{type="flow", direction="vertical"}
   access_panel.style.horizontally_stretchable = true
+  local description = ""
+  local description_full = entity.name
+  if entity.type == "constant-combinator" or
+     entity.type == "arithmetic-combinator" or
+     entity.type == "decider-combinator" or
+     entity.type == "selector-combinator" then
+    description_full = entity.combinator_description
+    description = description_full:match("^[^\r\n]*")
+    if description_full and description_full ~= "" then
+      access_panel.add({type="label", caption = description, tooltip=description_full})
+    end
+  end
   for _, access in pairs(accesses) do
     access_panel.add({
       type = "label",
