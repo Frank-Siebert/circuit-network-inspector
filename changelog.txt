@@ -1,11 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.0
+Date: 2016.11.17
+  Modding:
+    - column widths should now be better
+---------------------------------------------------------------------------------------------------
 Version: 0.4.0
 Date: 2016.11.15
   Modding:
     - central wire column now has the correct color
     - back and forward button now working
     - fix crash for furnaces with "read contents" enabled
-
+---------------------------------------------------------------------------------------------------
 Version: 0.3.0
 Date: 2026.11.13
   Modding:

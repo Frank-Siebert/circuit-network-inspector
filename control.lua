@@ -430,18 +430,17 @@ local function render_inspector(player, network)
   body.style.vertically_stretchable = true
 
   local writer_gui = body.add{name="writer_gui", type = "flow", direction="vertical"}
-  writer_gui.style.width = width * 0.4
   writer_gui.style.vertically_stretchable = true
   writer_gui.style.horizontally_stretchable = true
 
-  local signal_gui_frame = body.add{name="signal_gui_frame", type="scroll-pane", direction="vertical", style="logistic_sections_scroll_pane"}
+  local signal_gui_frame = body.add{name="signal_gui_frame", type="scroll-pane", direction="vertical", style="logistic_sections_scroll_pane",
+     vertical_scroll_policy="never"
+  }
   signal_gui_frame.style.vertically_stretchable = true
   local signal_gui = signal_gui_frame.add{name="signal_gui", type="table", column_count = 10, style = "compact_slot_table"  }
   signal_gui.style.cell_padding = 1
-  signal_gui.style.width = width * 0.2
 
   local reader_gui = body.add{name="reader_gui", type = "flow", direction="vertical"}
-  reader_gui.style.width = width * 0.4
   reader_gui.style.vertically_stretchable = true
   reader_gui.style.horizontally_stretchable = true
 
