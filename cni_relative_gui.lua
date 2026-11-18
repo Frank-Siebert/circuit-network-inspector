@@ -64,6 +64,7 @@ local entity_type_to_gui_type = {
     -- space
     ["space-platform-hub"]       = defines.relative_gui_type.space_platform_hub_gui,
     ["asteroid-collector"]       = defines.relative_gui_type.asteroid_collector_gui,
+    ["cargo-landing-pad"]        = defines.relative_gui_type.cargo_landing_pad_gui,
 
     ["agricultural-tower"]       = defines.relative_gui_type.agriculture_tower_gui,
 

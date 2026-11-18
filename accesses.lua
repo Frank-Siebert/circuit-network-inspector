@@ -1189,6 +1189,35 @@ function Behavior_accesses(entity, behavior, network)
 
 
   --------------------------------------------------------------------------
+  -- CARGO LANDING PAD
+  --------------------------------------------------------------------------
+
+  elseif t == defines.control_behavior.type.cargo_landing_pad  then
+
+    if output_ok and behavior.read_contents then
+      add_inventory_contents(
+        "read contents ",
+        entity.get_inventory(defines.inventory.hub_main)
+      )
+    end
+
+    if output_ok and behavior.read_empty_slots then
+      add_set(
+        "read empty slots ",
+        behavior.empty_slots_signal,
+        "?"
+      )
+    end
+
+    if input_ok and behavior.set_requests then
+      add_read(
+        "set requests",
+        Signal_access:new_type_match("any item", "item")
+      )
+    end
+
+
+  --------------------------------------------------------------------------
   -- AGRICULTURAL TOWER
   --------------------------------------------------------------------------
 
