@@ -1277,22 +1277,22 @@ function Behavior_accesses(entity, behavior, network)
     if input_ok then
       if behavior.set_input_side then
         add_comparison(
-          "set input side if ",
+          "set input side left if ",
           behavior.input_left_condition
         )
         add_comparison(
-          "set input side if ",
+          "set input side right if ",
           behavior.input_right_condition
         )
       end
 
       if behavior.set_output_side then
         add_comparison(
-          "set output side if ",
+          "set output side left if ",
           behavior.output_left_condition
         )
         add_comparison(
-          "set output side if ",
+          "set output side right if ",
           behavior.output_right_condition
         )
       end
