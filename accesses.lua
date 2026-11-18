@@ -1328,6 +1328,11 @@ function Behavior_accesses(entity, behavior, network)
 
     -- The artillery turret has only the generic enable/disable behavior.
     -- That was handled above.
+    if output_ok and behavior.read_ammo then
+      add_write("ammunition contents: ", entity.get_inventory(defines.inventory.artillery_turret_ammo),
+        Signal_access:new_type_match("item ammunition", "item")
+      )
+    end
 
 
   --------------------------------------------------------------------------

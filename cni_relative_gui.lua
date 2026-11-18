@@ -1,5 +1,11 @@
 local cni_relative_gui = {}
 
+--[[
+Osmo Rollenicon, Factorio Account — 12:30
+you can do
+ /c for name, type in pairs(defines.relative_gui_type) do game.player.gui.screen.add{ anchor = {gui = type, position = defines.relative_gui_position.right, ghost_mode = "both"}, type = "frame", caption = name } end
+and then just open a gui and see what the frame says
+]]
 -- https://lua-api.factorio.com/latest/defines.html#defines.relative_gui_type
 local entity_type_to_gui_type = {
     -- Produktions- & Verarbeitungsmaschinen
@@ -46,7 +52,7 @@ local entity_type_to_gui_type = {
     ["ammo-turret"]              = defines.relative_gui_type.turret_gui,
     ["electric-turret"]          = defines.relative_gui_type.turret_gui,
     ["fluid-turret"]             = defines.relative_gui_type.turret_gui,
-    ["artillery-turret"]         = defines.relative_gui_type.artillery_turret_gui,
+    ["artillery-turret"]         = defines.relative_gui_type.container_gui,
     ["radar"]                    = defines.relative_gui_type.radar_gui,
     ["wall"]                     = defines.relative_gui_type.wall_gui,
 
