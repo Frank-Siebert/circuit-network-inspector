@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.6.0
+Date: 2016.11.19
+  Bugfixes:
+    - show cargo landing pad in inspector
+    - show relative gui for cargo landing pad (thanks Myrax)
+    - show relative gui for artillery turret
+  Info:
+    - show left/right for splitter conditions
+---------------------------------------------------------------------------------------------------
 Version: 0.5.0
 Date: 2016.11.17
   Modding:
